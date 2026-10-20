@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>작업 과정 강의자료</title>
+<style>
+/*FONTS_CSS*/
+  /* 강의 교안 스타일: 흰 카드 · 굵은 제목 · 손글씨 질문상자/포스트잇 · 빨간 '내가 한 말' · 파란 'AI가 한 일' · 날짜 붙은 '고친 과정'.
+     바탕은 흰색·연회색만 쓴다. 베이지(크림·아이보리·샌드) 절대 금지 */
+  :root{--bg:#fbfbfd;--ink:#1a1d27;--mute:#6b7280;--dim:#9aa1af;--line:#e4e7ed;--panel:#eef0f4;--card:#fff;
+    --maroon:#a3283b;--red:#d6362b;--blue:#2a4a9a;--blue-bg:#e9eefb;--yellow:#ffe27a;--pink:#d6336c;--purple:#6b4fbb;--green:#1f8a5b;
+    --ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.34,1.5,.5,1);
+    --sans:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif;--hand:"Gaegu","Malgun Gothic",cursive}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#0e1014;font-family:var(--sans);color:var(--ink);overflow:hidden;-webkit-font-smoothing:antialiased}
+  #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  #slide{width:1920px;height:1080px;transform-origin:center;position:relative;overflow:hidden;flex:none;background:var(--bg)}
+  #view{position:absolute;inset:0;transition:transform .6s var(--ease);transform-origin:50% 0}
+  #slide.cap #view{transform:translateY(46px) scale(.82)}
+  .pad{padding:150px 100px 60px;height:100%}
+  h2{font-size:58px;line-height:1.2;margin:0 0 10px;font-weight:800;letter-spacing:-.02em;word-break:keep-all;animation:fadeup .7s var(--ease) both}
+  .sub{font-size:27px;color:var(--mute);animation:fadeup .7s var(--ease) .1s both}
+  .hand{font-family:var(--hand)}
+  /* 진행선·단계 표시줄 */
+  #prog{position:absolute;left:0;top:0;height:5px;background:var(--blue);width:0;transition:width .8s var(--ease);z-index:20}
+  #stepper{position:absolute;left:100px;right:100px;top:62px;display:flex;z-index:12;transition:opacity .4s}
+  #stepper.off{opacity:0;pointer-events:none}
+  .sc{flex:1;display:flex;align-items:center;gap:10px;font-size:20px;color:var(--mute);cursor:pointer;white-space:nowrap}
+  .sc i{font-style:normal;width:36px;height:36px;border-radius:50%;border:2.5px solid #c4cad6;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:19px;color:#8b93a3;transition:.5s var(--spring);flex:none}
+  .sc.past i{background:var(--ink);border-color:var(--ink);color:#fff}
+  .sc.now i{background:var(--yellow);border-color:var(--ink);color:var(--ink);transform:scale(1.25)}
+  .sc.now{color:var(--ink);font-weight:700}
+  /* 캐릭터 */
+  #mascot{position:absolute;top:0;left:0;width:60px;height:72px;z-index:14;transition:transform .9s var(--spring),opacity .4s;pointer-events:none}
+  #mascot svg{width:100%;height:100%;overflow:visible}
+  #mascot.hop svg{animation:hop .7s var(--spring)}
+  @keyframes hop{0%{transform:none}35%{transform:translateY(-16px) rotate(-6deg)}70%{transform:translateY(0) rotate(3deg)}100%{transform:none}}
+  .eye{transform-box:fill-box;transform-origin:center;animation:blink 4s infinite}
+  @keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+  .ant{animation:wob 1.8s ease-in-out infinite;transform-origin:50px 16px}
+  @keyframes wob{50%{transform:rotate(12deg)}}
+  #bubble{position:absolute;left:72px;top:6px;transform:scale(.3) translateX(-14px);transform-origin:0 60%;background:#fff;border:3px solid var(--ink);border-radius:20px;padding:8px 20px;font-size:23px;font-weight:700;white-space:nowrap;opacity:0;transition:.45s var(--spring)}
+  #bubble:after{content:"";position:absolute;left:-12px;top:50%;width:16px;height:16px;background:#fff;border-left:3px solid var(--ink);border-bottom:3px solid var(--ink);transform:translateY(-50%) rotate(45deg)}
+  #bubble.on{opacity:1;transform:none}
+  /* 입·퇴장 */
+  .enter{animation:enter .6s var(--ease) both}
+  .leave{animation:leave .22s ease-in both}
+  @keyframes enter{from{opacity:0;transform:translateX(70px)}to{opacity:1;transform:none}}
+  @keyframes leave{to{opacity:0;transform:translateX(-50px)}}
+  .fadeup{animation:fadeup .7s var(--ease) both}
+  @keyframes fadeup{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+  .pop{animation:popin .6s var(--spring) both}
+  @keyframes popin{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+  /* 표지 (영상 1번 슬라이드: 큰 제목 + 노란 날짜 칩 + 아래 단계 점 줄) */
+  .cover{position:relative;height:100%;padding:0 100px}
+  .cover .left{position:absolute;left:100px;top:230px;width:900px}
+  .cover h1{font-size:72px;line-height:1.26;margin:0 0 30px;font-weight:800;letter-spacing:-.03em;word-break:keep-all;text-wrap:balance}
+  .w.br{margin-left:-.2em}
+  .w{display:inline-block;animation:rise .8s var(--spring) both;animation-delay:calc(var(--i)*.09s + .25s)}
+  @keyframes rise{from{opacity:0;transform:translateY(46px) rotate(3deg)}to{opacity:1;transform:none}}
+  .datepill{display:inline-block;background:var(--yellow);padding:8px 22px;border-radius:999px;font-size:27px;font-weight:700;margin-bottom:26px}
+  .cover .fact{font-size:27px;color:var(--mute);margin-top:10px;line-height:1.55}
+  .hero{position:absolute;right:100px;top:190px;width:760px;background:#fff;border:1px solid var(--line);border-radius:26px;padding:18px;box-shadow:0 26px 60px rgba(30,40,70,.2);animation:heroin .9s var(--spring) .5s both,float 6s ease-in-out 1.6s infinite}
+  .hero img{width:100%;display:block;border-radius:12px}
+  @keyframes heroin{from{opacity:0;transform:translateX(120px) rotate(6deg)}to{opacity:1;transform:rotate(-2deg)}}
+  @keyframes float{50%{transform:rotate(-2deg) translateY(-12px)}}
+  .heroCap{position:absolute;right:110px;top:640px;width:740px;font-size:25px;font-weight:500;color:var(--mute);animation:fadeup .8s var(--ease) 1.8s both}
+  .csteps{position:absolute;left:100px;right:100px;bottom:90px;display:flex;align-items:flex-start}
+  .cs{flex:1;display:flex;flex-direction:column;align-items:center;gap:12px;font-size:21px;color:var(--mute);position:relative;animation:popin .6s var(--spring) both;animation-delay:calc(var(--i)*.12s + 1.4s)}
+  .cs i{font-style:normal;width:42px;height:42px;border-radius:50%;border:2.5px solid var(--ink);background:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:var(--ink)}
+  .cs:not(:last-child):after{content:"";position:absolute;top:21px;left:calc(50% + 28px);right:calc(-50% + 28px);height:2px;background:var(--line)}
+  .bigmascot{position:absolute;right:80px;bottom:170px;width:120px;animation:popin .8s var(--spring) 1.6s both}
+  .bigmascot svg{width:100%;overflow:visible;animation:bob 2.4s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(-12px)}}
+  /* 흐름표(스윔레인) */
+  .board{position:relative;margin-top:30px}
+  .brow{display:grid;grid-template-columns:150px repeat(var(--n),1fr);position:relative}
+  .hdr .hc{padding:8px 8px 14px;text-align:center;cursor:pointer;transition:.3s}
+  .hdr .hc b{display:block;font-size:30px;font-weight:500;color:var(--dim);transition:color .3s}
+  .hdr .hc span{font-size:21px;color:var(--dim)}
+  .hdr .hc.now b,.hdr .hc.now span,.hdr .hc.past b,.hdr .hc.past span{color:var(--ink)}
+  .hdr .hc.now b{font-weight:700}
+  .lbl{display:flex;align-items:center;font-size:25px;font-weight:700;padding-right:10px}
+  .lbl small{display:block;font-size:17px;font-weight:400;color:var(--mute)}
+  .brow .c{padding:6px}
+  .box{height:100%;min-height:104px;background:#fff;border:2.5px solid var(--line);border-radius:14px;padding:12px 15px;font-size:22px;line-height:1.38;word-break:keep-all;display:flex;align-items:center;color:var(--dim);
+    opacity:.5;transform:scale(.95);transition:opacity .45s,transform .6s var(--spring),border-color .4s,background .4s,box-shadow .4s,color .4s;transition-delay:calc(var(--r)*.1s)}
+  .box.done{opacity:1;transform:none;color:var(--ink);border-color:var(--acc);background:color-mix(in srgb,var(--acc) 6%,#fff)}
+  .box.now{opacity:1;transform:scale(1.05);color:var(--ink);border-color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,#fff);box-shadow:0 12px 28px rgba(30,40,70,.22)}
+  .box.empty{border-style:dashed;background:transparent;opacity:.3}
+  .brow.human{--acc:var(--pink)}.brow.ai{--acc:var(--blue)}.brow.tool{--acc:var(--purple)}.brow.out{--acc:var(--green)}
+  .abar{grid-column:2/-1;height:22px;margin:0 6px 2px;position:relative}
+  .abar div{position:absolute;left:0;top:0;bottom:0;border-radius:11px;background:var(--blue);width:0;transition:width .9s var(--ease);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;padding-left:14px;overflow:hidden;white-space:nowrap}
+  .band{position:absolute;top:-8px;bottom:-8px;left:calc(150px + (var(--cur) - 1)*((100% - 150px)/var(--n)));width:calc((100% - 150px)/var(--n));background:rgba(255,226,122,.55);border:2px dashed rgba(214,54,43,.7);border-radius:16px;transition:left .8s var(--spring),opacity .3s;opacity:0;pointer-events:none}
+  .board.on .band{opacity:1}
+  .legend{margin-top:28px;font-size:23px;color:var(--mute);display:flex;gap:28px}
+  .legend i{display:inline-block;width:16px;height:16px;border-radius:5px;margin-right:9px;vertical-align:-2px}
+  /* 토스트 */
+  #toast{position:absolute;left:50%;bottom:92px;transform:translate(-50%,40px) scale(.8);background:#15171c;color:#fff;border-radius:22px;padding:22px 42px;font-size:30px;font-weight:700;opacity:0;transition:.5s var(--spring);z-index:15;display:flex;gap:16px;align-items:center}
+  #toast.on{opacity:1;transform:translate(-50%,0) scale(1)}
+  #toast svg{width:34px;height:34px}
+  /* 단계 카드 (영상 교안 카드) */
+  .inline{display:flex;align-items:center;justify-content:center;height:100%;padding-top:74px}
+  .card{width:1790px;height:956px;background:var(--card);border-radius:26px;display:grid;grid-template-columns:1.22fr 1fr;grid-template-rows:auto 1fr;gap:20px 40px;padding:30px 48px 40px;position:relative;box-shadow:0 18px 50px rgba(30,40,70,.16);animation:cardin .7s var(--spring) both}
+  @keyframes cardin{from{opacity:0;transform:scale(.9) translateY(40px)}to{opacity:1;transform:none}}
+  .card .head{grid-column:1/3;display:flex;gap:16px;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--line)}
+  .card .no{background:var(--yellow);border-radius:12px;min-width:58px;text-align:center;padding:2px 16px;font-size:40px;font-weight:700;animation:popin .6s var(--spring) .2s both}
+  .card .ttl{font-size:44px;font-weight:800;letter-spacing:-.02em}
+  .card .tag{font-size:20px;color:var(--mute);margin-left:4px}
+  .tabs{display:flex;gap:10px;margin-left:24px}
+  .tabs span{border:1.5px solid var(--line);border-radius:999px;padding:6px 20px;font-size:21px}
+  .tabs span.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .close{position:absolute;right:26px;top:22px;width:50px;height:50px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:28px;cursor:pointer;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .inline .close{display:none}
+  .art{background:var(--panel);border-radius:20px;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0;position:relative;animation:artin .8s var(--ease) .15s both}
+  @keyframes artin{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:none}}
+  .paper{position:relative;background:#fff;padding:12px;border-radius:6px;box-shadow:0 10px 30px rgba(30,40,70,.2);transform:rotate(-.7deg);cursor:zoom-in;animation:settle .9s var(--spring) .4s both}
+  @keyframes settle{from{opacity:0;transform:rotate(-4deg) translateY(30px) scale(.94)}to{opacity:1;transform:rotate(-.7deg)}}
+  .shot{position:relative;line-height:0}
+  .shot img{display:block;max-width:100%;max-height:640px;width:auto;height:auto}
+  .zoomhint{position:absolute;right:20px;bottom:18px;background:rgba(26,29,39,.78);color:#fff;font-size:18px;padding:7px 16px;border-radius:999px}
+  .marks{position:absolute;inset:0;pointer-events:none}
+  .marks svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .marks ellipse{fill:none;stroke:var(--red);stroke-width:5;stroke-linecap:round;vector-effect:non-scaling-stroke;stroke-dasharray:1;stroke-dashoffset:1;animation:draw .9s var(--ease) forwards;animation-delay:var(--d)}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .marks .lab{position:absolute;font-family:var(--hand);font-size:36px;font-weight:700;color:var(--red);line-height:1.1;white-space:nowrap;opacity:0;transform:rotate(-4deg);animation:fadeup .6s var(--ease) forwards;animation-delay:calc(var(--d) + .5s)}
+  .art .ph{font-size:28px;color:var(--dim)}
+  .art table{border-collapse:collapse;font-size:32px;background:#fff;margin:20px;border-radius:10px;overflow:hidden}
+  .art td,.art th{border:2px solid var(--line);padding:16px 22px;text-align:left;line-height:1.38}
+  .art th{background:var(--blue-bg);color:var(--blue);font-size:23px}
+  .art tr.r{animation:fadeup .7s var(--ease) both;animation-delay:calc(var(--i)*.85s + .9s)}
+  .art .bad{color:var(--red);font-weight:700;position:relative}
+  .art .bad:after{content:"";position:absolute;left:0;right:0;top:56%;height:4px;background:var(--red);transform-origin:left;transform:scaleX(0);animation:strike .5s var(--ease) forwards;animation-delay:calc(var(--i)*.85s + 1.5s)}
+  @keyframes strike{to{transform:scaleX(1)}}
+  .side{display:flex;flex-direction:column;gap:10px;overflow:hidden;min-height:0}
+  .q{font-size:25px;font-weight:500;line-height:1.4;color:#4b5563;border:2px dashed #b8bfcc;border-radius:12px;padding:9px 16px;opacity:0;animation:fadeup .6s var(--ease) forwards;animation-delay:var(--d)}
+  .say{border-left:5px solid var(--maroon);padding:2px 0 2px 18px;opacity:0;animation:fadeup .5s var(--ease) forwards;animation-delay:var(--d)}
+  .say .lab{display:flex;justify-content:space-between;font-size:20px;font-weight:700;color:var(--maroon);margin-bottom:6px}
+  .say .lab em{font-style:normal;color:var(--maroon)}
+  .say p{font-size:31px;line-height:1.42;margin:0;font-weight:700;min-height:1.42em;letter-spacing:-.01em}
+  mark{background:linear-gradient(transparent 8%,rgba(120,160,255,.42) 8%) no-repeat;background-size:0% 100%;color:inherit;transition:background-size .8s var(--ease) .2s;border-radius:4px}
+  mark.on{background-size:100% 100%}
+  .note{align-self:flex-start;max-width:92%;background:#ffe680;font-size:27px;font-weight:500;line-height:1.45;padding:18px 26px;color:#2b2a22;margin-top:6px;border-radius:3px;box-shadow:0 12px 22px rgba(0,0,0,.18);position:relative;opacity:0;animation:drop .9s var(--spring) forwards;animation-delay:var(--d)}
+  .note:before{content:"";position:absolute;left:50%;top:-14px;width:90px;height:26px;background:rgba(255,255,255,.55);border:1px solid rgba(0,0,0,.08);transform:translateX(-50%) rotate(-2deg)}
+  @keyframes drop{from{opacity:0;transform:translateY(-130px) rotate(-12deg)}to{opacity:1;transform:rotate(-1.8deg)}}
+  .did{background:var(--blue-bg);border-radius:14px;padding:11px 18px;opacity:0;animation:fadeup .6s var(--ease) forwards;animation-delay:var(--d)}
+  .did .lab{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:700;color:var(--blue);margin-bottom:5px}
+  .did .lab:before{content:"";width:18px;height:18px;border-radius:50%;background:var(--blue)}
+  .did p{font-size:24px;line-height:1.4;margin:0}
+  .fixhead{font-size:22px;font-weight:700;color:var(--mute);opacity:0;animation:fadeup .4s var(--ease) forwards;animation-delay:var(--d)}
+  .fix{border-left:5px solid #d99aa4;padding:2px 0 2px 16px;opacity:0;animation:slidein .6s var(--spring) forwards;animation-delay:var(--d)}
+  @keyframes slidein{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}
+  .fix time{font-size:18px;color:var(--maroon);font-weight:700}
+  .fix p{margin:1px 0;font-size:24px;line-height:1.35;font-weight:700}
+  .fix p+p{font-size:21px;font-weight:400;color:#4b5563}
+  .fix p+p:first-letter{color:var(--blue)}
+  .caveat{font-size:20px;color:var(--dim);opacity:0;animation:fadeup .6s var(--ease) forwards;animation-delay:var(--d);line-height:1.5}
+  .pager{position:absolute;left:52px;bottom:14px;font-size:19px;color:var(--mute)}
+  .pager b{color:var(--ink)}
+  .nav{position:absolute;bottom:12px;right:44px;font-size:20px;color:var(--dim);z-index:6}
+  .hint{position:absolute;left:52px;bottom:14px;font-size:18px;color:var(--mute)}
+  /* 모달·확대 */
+  #modal{position:absolute;inset:0;display:none;z-index:8}
+  #modal.open{display:block}
+  #mback{position:absolute;inset:0;background:rgba(15,18,28,.55);animation:fadein .3s both}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  #mcard{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;animation:zoom .55s var(--spring) both}
+  @keyframes zoom{from{opacity:0;transform:scale(.25)}to{opacity:1;transform:none}}
+  #modal .card{width:1740px;height:900px;animation:none}
+  #lightbox{position:absolute;inset:0;background:rgba(10,12,18,.88);display:none;align-items:center;justify-content:center;z-index:30;cursor:zoom-out}
+  #lightbox.on{display:flex;animation:fadein .25s both}
+  #lightbox img{max-width:92%;max-height:92%;border-radius:8px;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:popin .45s var(--spring) both}
+  /* 마지막 장: 영상 마지막 슬라이드처럼 짙은 남색 */
+  .closing{position:absolute;inset:0;background:linear-gradient(160deg,#0f1b3d,#0a1226);color:#fff;padding:150px 100px 60px}
+  .closing h2{color:#fff;font-size:70px;text-align:center;margin-top:50px}
+  .closing .sub{color:#a9b4d0;text-align:center}
+  .choice{display:flex;gap:30px;margin-top:70px}
+  .opt{flex:1;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.2);border-radius:24px;padding:42px 36px;font-size:40px;font-weight:700;line-height:1.35;word-break:keep-all;cursor:pointer;transition:.4s var(--spring);animation:popin .7s var(--spring) both;animation-delay:calc(var(--i)*.15s + .5s)}
+  .opt small{display:block;font-size:25px;font-weight:400;color:#a9b4d0;margin-top:16px;line-height:1.5}
+  .opt kbd{display:block;font:500 36px var(--sans);color:var(--yellow);margin-bottom:14px}
+  .opt:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.5)}
+  .opt.sel{background:var(--yellow);color:#15171c;border-color:var(--yellow);transform:translateY(-14px) scale(1.04);box-shadow:0 24px 50px rgba(0,0,0,.4)}
+  .opt.sel small{color:#3a3a2a}.opt.sel kbd{color:#15171c}
+  .closing .cm{position:absolute;right:100px;bottom:110px;width:130px}
+  .closing .cm svg{width:100%;overflow:visible;animation:bob 2.4s ease-in-out infinite}
+  .closing .cmb{position:absolute;right:250px;bottom:190px;background:#fff;color:#15171c;border-radius:20px;padding:8px 22px;font-size:26px;font-weight:700;animation:popin .6s var(--spring) 1.6s both}
+  .closing .hintkey{margin-top:40px;text-align:center;font-size:22px;color:#7f8bab}
+  /* 대본·자막 */
+  #caption{position:absolute;left:0;right:0;bottom:0;background:rgba(21,23,28,.94);color:#fff;font-size:28px;line-height:1.6;padding:24px 90px 38px;z-index:18;display:none}
+  #caption.on{display:block}
+  #caption b{color:var(--yellow);margin-right:12px}
+</style>
+</head>
+<body>
+<div id="stage"><div id="slide">
+  <div id="prog"></div>
+  <div id="stepper"></div>
+  <div id="mascot"><div id="bubble"></div>
+    <svg viewBox="0 0 100 112"><g class="ant"><line x1="50" y1="16" x2="50" y2="4" stroke="#2a4a9a" stroke-width="5" stroke-linecap="round"/><circle cx="50" cy="5" r="6" fill="#ffe27a" stroke="#1a1d27" stroke-width="3"/></g>
+      <rect x="14" y="16" width="72" height="62" rx="24" fill="#fff" stroke="#1a1d27" stroke-width="5"/>
+      <circle cx="12" cy="48" r="7" fill="#ffe27a" stroke="#1a1d27" stroke-width="3"/><circle cx="88" cy="48" r="7" fill="#ffe27a" stroke="#1a1d27" stroke-width="3"/>
+      <ellipse class="eye" cx="36" cy="46" rx="7" ry="9" fill="#1a1d27"/><ellipse class="eye" cx="64" cy="46" rx="7" ry="9" fill="#1a1d27"/>
+      <path d="M37 62 Q50 72 63 62" stroke="#1a1d27" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <rect x="28" y="82" width="44" height="26" rx="11" fill="#2a4a9a" stroke="#1a1d27" stroke-width="4"/></svg>
+  </div>
+  <div id="view"></div>
+  <div id="modal"><div id="mback"></div><div id="mcard"></div></div>
+  <div id="lightbox"><img alt=""></div>
+  <div id="toast"></div>
+  <div id="caption"></div>
+  <div class="nav" id="nav"></div>
+</div></div>
+
+<script>
+/* DECK 데이터는 deck.json 에서 scripts/build-deck.cjs 가 넣는다 */
+const DECK = /*DECK_JSON*/null;
+
+/* ======================= 엔진 ======================= */
+const $ = (s,el=document)=>el.querySelector(s);
+const slideEl=$('#slide'), view=$('#view'), mascot=$('#mascot'), bubble=$('#bubble'), stepper=$('#stepper');
+const esc=(s)=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const N = DECK.steps.length;
+const camera = `<svg viewBox="0 0 24 24" fill="none" stroke="#ffe27a" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>`;
+const mascotSVG = $('#mascot svg').outerHTML;
+let slides=[], cur=0, frag=0, showCap=false, timers=[], autoTimer=null, openStepNo=0, curStepNo=0;
+const later=(fn,ms)=>{const t=setTimeout(fn,ms);timers.push(t);return t};
+const clearTimers=()=>{timers.forEach(clearTimeout);timers=[]};
+
+/* ----- 단계 표시줄 ----- */
+stepper.innerHTML = DECK.steps.map(s=>`<div class="sc" data-no="${s.no}"><i>${s.no}</i><span>${esc(s.name)}</span></div>`).join('');
+stepper.querySelectorAll('.sc').forEach(el=>el.onclick=()=>openCard(+el.dataset.no));
+function markStepper(no){
+  curStepNo=no;
+  stepper.querySelectorAll('.sc').forEach(el=>{const k=+el.dataset.no;el.classList.toggle('past',no>0&&k<no);el.classList.toggle('now',k===no)});
+  document.querySelectorAll('.hdr .hc').forEach(el=>{const k=+el.dataset.no;el.classList.toggle('past',no>0&&k<no);el.classList.toggle('now',k===no)});
+  placeMascot(no);
+}
+function placeMascot(no){
+  if(!no){mascot.style.opacity=0;return}
+  const el=stepper.querySelector(`.sc[data-no="${no}"] i`); if(!el)return;
+  const x=stepper.offsetLeft+el.offsetLeft+el.offsetWidth/2-30;
+  const y=stepper.offsetTop-64;
+  mascot.style.opacity=1; mascot.style.transform=`translate(${x}px,${y}px)`;
+  mascot.classList.remove('hop'); void mascot.offsetWidth; mascot.classList.add('hop');
+}
+function say(text,ms=3600){
+  if(!text){bubble.classList.remove('on');return}
+  bubble.textContent=text; bubble.classList.add('on');
+  later(()=>bubble.classList.remove('on'),ms);
+}
+function toast(html,ms=3400){const t=$('#toast');t.innerHTML=html;t.classList.add('on');later(()=>t.classList.remove('on'),ms)}
+
+/* ----- 단계 카드 ----- */
+function words(t,off=0){return t.split(' ').map((w,i)=>`<span class="w${w.startsWith('「')?' br':''}" style="--i:${i+off}">${esc(w)}</span>`).join(' ')}
+function marksHTML(s,d0){
+  if(!(s.marks&&s.marks.length))return '';
+  return `<div class="marks"><svg viewBox="0 0 100 100" preserveAspectRatio="none">${s.marks.map((m,i)=>`<ellipse pathLength="1" cx="${m.x+m.w/2}" cy="${m.y+m.h/2}" rx="${m.w/2}" ry="${m.h/2}" style="--d:${d0+i*.4}s"/>`).join('')}</svg>
+    ${s.marks.map((m,i)=>m.label?`<div class="lab" style="left:${m.lx}%;top:${m.ly}%;--d:${d0+i*.4}s">${esc(m.label)}</div>`:'').join('')}</div>`;
+}
+function cardHTML(s,opt={}){
+  const talk=s.talk&&s.talk.text?s.talk:null;
+  const qlen=talk?talk.text.length:0, typeDur=Math.min(2.4,qlen*0.05);
+  let t=.7; const dQ=t; t+=s.question?.9:0;
+  const dTalk=t; t+=talk?typeDur+.9:0;
+  const dDid=t; t+=s.did?1:0;
+  const fixes=s.fixes||[]; const dFixH=t; t+=fixes.length?.5:0;
+  const dFix=fixes.map((f,i)=>t+i*.75); t+=fixes.length*.75+.2;
+  const dNote=t; const dCav=t+1;
+  const next=DECK.steps.find(x=>x.no===s.no+1);
+  let art;
+  if(s.artHtml) art=s.artHtml;
+  else if(s.img) art=`<div class="paper"><div class="shot"><img src="${esc(s.img)}">${marksHTML(s,1.6)}</div><span class="zoomhint">누르면 확대</span></div>`;
+  else art=`<span class="ph">결과물 캡처 / 도식을 여기에</span>`;
+  return `<div class="card" data-no="${s.no}" data-typeat="${dTalk}">
+    <button class="close" onclick="closeCard()">×</button>
+    <div class="head"><span class="no">${s.no}</span><span class="ttl">${esc(s.name)}</span><span class="tag">${esc(s.who||'')}</span>
+      ${s.tabs?`<div class="tabs">${s.tabs.map((x,i)=>`<span class="${i===(s.tabOn||0)?'on':''}">${esc(x)}</span>`).join('')}</div>`:''}</div>
+    <div class="art">${art}</div>
+    <div class="side">
+      ${s.question?`<div class="q" style="--d:${dQ}s">${esc(s.question)}</div>`:''}
+      ${talk?`<div class="say" style="--d:${dTalk}s"><div class="lab"><span>내가 한 말</span><em>${esc(talk.at)}</em></div><p data-full="${esc(talk.text)}" data-hl='${esc(JSON.stringify(talk.hl||[]))}'></p></div>`:''}
+      ${s.did?`<div class="did" style="--d:${dDid}s"><div class="lab">AI가 한 일</div><p>${esc(s.did)}</p></div>`:''}
+      ${fixes.length?`<div class="fixhead" style="--d:${dFixH}s">고친 과정</div>`:''}
+      ${fixes.map((f,i)=>`<div class="fix" style="--d:${dFix[i]}s"><time>${esc(f.at)}</time><p>${esc(f.problem)}</p><p>→ ${esc(f.fix)}</p></div>`).join('')}
+      ${s.note?`<div class="note" style="--d:${dNote}s">${esc(s.note)}</div>`:''}
+      ${s.caveat?`<div class="caveat" style="--d:${dCav}s">${esc(s.caveat)}</div>`:''}
+    </div>
+    ${opt.modal?'<div class="hint">← → 이전/다음 · ESC 닫기</div>':(next?`<div class="pager">다음 단계 · <b>${next.no} ${esc(next.name)}</b></div>`:'')}
+  </div>`;
+}
+function animateCard(root){
+  const card=$('.card',root); if(!card)return;
+  card.querySelectorAll('.art tr').forEach((tr,i)=>{if(i>0){tr.classList.add('r');tr.style.setProperty('--i',i-1);tr.querySelectorAll('.bad').forEach(b=>b.style.setProperty('--i',i-1))}});
+  card.querySelectorAll('.paper').forEach(p=>p.onclick=()=>{const im=$('img',p);if(im){$('#lightbox img').src=im.src;$('#lightbox').classList.add('on')}});
+  const p=$('.say p',card);
+  if(p){
+    const full=p.dataset.full, hl=JSON.parse(p.dataset.hl||'[]'), start=(+card.dataset.typeat||.7)*1000+250;
+    let i=0;
+    later(()=>{const iv=setInterval(()=>{i++;p.textContent=full.slice(0,i);if(i>=full.length){clearInterval(iv);
+        let h=esc(full); hl.forEach(x=>{h=h.replace(esc(x),`<mark>${esc(x)}</mark>`)});
+        if(hl.length){p.innerHTML=h;later(()=>p.querySelectorAll('mark').forEach(m=>m.classList.add('on')),50)}}},50);timers.push(iv)},start);
+  }
+}
+$('#lightbox').onclick=()=>$('#lightbox').classList.remove('on');
+function stepBubble(no){const s=DECK.steps.find(x=>x.no===no);if(s&&s.bubble)later(()=>say(s.bubble),1100)}
+
+/* ----- 모달 열기/닫기 ----- */
+function openCard(no){
+  const s=DECK.steps.find(x=>x.no===no); if(!s)return;
+  openStepNo=no;
+  const m=$('#modal'), mc=$('#mcard');
+  const src=stepper.querySelector(`.sc[data-no="${no}"] i`);
+  if(src){const r=src.getBoundingClientRect(), sr=slideEl.getBoundingClientRect(), k=sr.width/1920;
+    mc.style.transformOrigin=`${(r.left+r.width/2-sr.left)/k}px ${(r.top+r.height/2-sr.top)/k}px`;}
+  mc.innerHTML=cardHTML(s,{modal:true}); m.classList.add('open'); animateCard(mc);
+  $('#mback').onclick=closeCard; markStepper(no);
+}
+function closeCard(){openStepNo=0;const m=$('#modal');m.classList.remove('open');$('#mcard').innerHTML='';markStepper(slides[cur].stepNo?slides[cur].stepNo(frag):0)}
+
+/* ----- 슬라이드 정의 ----- */
+function build(){
+  const sc=DECK.scripts||{}, secs=DECK.seconds||{};
+  // 1 표지
+  slides.push({id:'cover',sec:secs.title,script:sc.title,frags:0,stepper:false,stepNo:()=>0,
+    html:()=>`<div class="cover"><div class="left"><span class="datepill pop">${esc(DECK.meta)}</span>
+      <h1>${words(DECK.title)}<br>${words(DECK.subtitle,8)}</h1>
+      ${(DECK.facts||[]).map((f,i)=>`<div class="fact fadeup" style="animation-delay:${1.3+i*.25}s">${esc(f)}</div>`).join('')}</div>
+      ${DECK.heroImg?`<div class="hero"><img src="${esc(DECK.heroImg)}"></div>`:''}${DECK.heroCaption?`<div class="heroCap">${esc(DECK.heroCaption)}</div>`:''}
+      <div class="bigmascot">${mascotSVG}</div>
+      <div class="csteps">${DECK.steps.map((s,i)=>`<div class="cs" style="--i:${i}"><i>${s.no}</i><span>${esc(s.name)}</span></div>`).join('')}</div></div>`,
+    enter:()=>{}});
+  // 2 흐름표 (→ 를 누를 때마다 단계가 하나씩 진행)
+  slides.push({id:'flow',sec:secs.flow,script:sc.flow,frags:N,stepNo:(f)=>f,
+    html:()=>{
+      const B=DECK.board;
+      const hdr=`<div class="brow hdr"><div></div>${DECK.steps.map(s=>`<div class="hc" data-no="${s.no}"><b>${s.no}</b><span>${esc(s.name)}</span></div>`).join('')}</div>`;
+      const rows=B.rows.map((r,ri)=>`${r.cls==='ai'&&B.aiBar?`<div class="brow ai"><div></div><div class="abar"><div>${esc(B.aiBar)}</div></div></div>`:''}
+        <div class="brow ${r.cls}" style="--r:${ri}"><div class="lbl"><span>${esc(r.name)}${r.sub?`<small>${esc(r.sub)}</small>`:''}</span></div>${DECK.steps.map((s,ci)=>{const tx=(r.cells||[])[ci]||'';return `<div class="c"><div class="box ${tx?'':'empty'}" data-c="${ci+1}" style="--r:${ri}">${esc(tx)}</div></div>`}).join('')}</div>`).join('');
+      return `<div class="pad"><h2>${esc(DECK.flowTitle||'전체 흐름')}</h2><div class="sub">→ 키를 누르면 한 단계씩 진행합니다 · Enter는 카드 열기</div>
+        <div class="board" id="board" style="--n:${N};--cur:0"><div class="band"></div>${hdr}${rows}</div>
+        <div class="legend"><span><i style="background:var(--pink)"></i>내가 한 일</span><span><i style="background:var(--blue)"></i>AI가 한 일</span><span><i style="background:var(--purple)"></i>쓴 도구</span><span><i style="background:var(--green)"></i>나온 결과물</span></div></div>`;
+    },
+    enter:()=>{ $('#board').querySelectorAll('.hc').forEach(h=>h.onclick=()=>openCard(+h.dataset.no)); applyFrag(0); },
+    onFrag:(f)=>applyFrag(f)});
+  // 3~ 단계 카드
+  for(const no of (DECK.cardSteps||[])){
+    const s=DECK.steps.find(x=>x.no===no); if(!s)continue;
+    slides.push({id:'card'+no,sec:s.sec,script:s.script,frags:0,stepNo:()=>no,
+      html:()=>`<div class="inline">${cardHTML(s)}</div>`,
+      enter:(root)=>{animateCard(root);stepBubble(no)}});
+  }
+  // 마지막
+  const c=DECK.closing;
+  slides.push({id:'closing',sec:secs.closing,script:sc.closing,frags:0,stepper:false,stepNo:()=>0,
+    html:()=>`<div class="closing"><h2 class="fadeup">${esc(c.title)}</h2>${c.sub?`<div class="sub fadeup" style="animation-delay:.2s">${esc(c.sub)}</div>`:''}
+      <div class="choice">${c.choices.map((x,i)=>{const o=typeof x==='string'?{t:x}:x;return `<div class="opt" data-i="${i}" style="--i:${i}"><kbd>${i+1}</kbd>${esc(o.t)}${o.d?`<small>${esc(o.d)}</small>`:''}</div>`}).join('')}</div>
+      <div class="hintkey fadeup" style="animation-delay:1.4s">1 · 2 · 3 키로 골라 보세요</div>
+      <div class="cmb">여러분은요?</div><div class="cm">${mascotSVG}</div></div>`,
+    enter:(root)=>{root.querySelectorAll('.opt').forEach(o=>o.onclick=()=>choose(+o.dataset.i))}});
+}
+function choose(i){document.querySelectorAll('.opt').forEach((o,k)=>o.classList.toggle('sel',k===i))}
+
+/* ----- 흐름표 조각 적용 ----- */
+function applyFrag(f){
+  const b=$('#board'); if(!b)return;
+  b.style.setProperty('--cur',f); b.classList.toggle('on',f>0);
+  b.querySelectorAll('.box').forEach(x=>{const c=+x.dataset.c;x.classList.toggle('done',f>0&&c<f);x.classList.toggle('now',f>0&&c===f)});
+  const bar=$('.abar div',b); if(bar)bar.style.width=(f/N*100)+'%';
+  markStepper(f);
+  if(f>0){const s=DECK.steps.find(x=>x.no===f); if(s&&s.bubble)say(s.bubble,2600)}
+  if(f===N&&!(autoTimer&&DECK.toastAt))later(()=>toast(camera+(DECK.flowToast||'여기까지가 전체 흐름입니다')),600);
+}
+
+/* ----- 이동 ----- */
+async function go(i,f=0){
+  clearTimers(); $('#toast').classList.remove('on'); bubble.classList.remove('on');
+  const old=view.firstElementChild;
+  if(old){old.classList.add('leave');await new Promise(r=>setTimeout(r,220))}
+  cur=i; frag=0; const s=slides[i];
+  view.innerHTML=`<div class="enter" style="height:100%">${s.html()}</div>`;
+  stepper.classList.toggle('off',s.stepper===false);
+  $('#prog').style.width=((i+1)/slides.length*100)+'%';
+  updateNav(); updateCaption();
+  markStepper(s.stepNo(0));
+  s.enter&&s.enter(view);
+  if(f>0){frag=f;s.onFrag&&s.onFrag(f)}
+}
+function next(){const s=slides[cur]; if(openStepNo){const n=openStepNo+1;if(n<=N)openCard(n);return}
+  if(frag<s.frags){frag++;s.onFrag&&s.onFrag(frag);updateNav()} else if(cur<slides.length-1) go(cur+1)}
+function prev(){const s=slides[cur]; if(openStepNo){const n=openStepNo-1;if(n>=1)openCard(n);return}
+  if(frag>0){frag--;s.onFrag&&s.onFrag(frag);updateNav()} else if(cur>0) go(cur-1,slides[cur-1].frags)}
+function updateNav(){const total=slides.reduce((a,x)=>a+(x.sec||0),0),s=slides[cur];
+  $('#nav').textContent=`${cur+1} / ${slides.length}${s.sec?` · 목표 ${s.sec}초`:''}${total?` · 전체 ${Math.floor(total/60)}분 ${total%60}초`:''}`}
+function updateCaption(){const c=$('#caption');c.innerHTML=`<b>대본</b>${esc(slides[cur].script||'')}`;c.classList.toggle('on',showCap);slideEl.classList.toggle('cap',showCap)}
+
+/* ----- 자동 재생(영상처럼): P 키 ----- */
+function startAuto(speed=1,from=0){
+  stopAuto(); showCap=true; $('#caption').classList.add('on'); slideEl.classList.add('cap');
+  const run=(i)=>{
+    go(i).then(()=>{
+      (window.__marks=window.__marks||[]).push({i,t:performance.now()});
+      const s=slides[i], dur=(s.sec||8)*1000/speed, fr=s.frags||0;
+      const fa=(DECK.fragAt||{})[s.id];   // 낭독에 맞춘 조각 시각(슬라이드 시작 기준 초), 없으면 균등 분배
+      for(let k=1;k<=fr;k++) later(()=>{frag=k;s.onFrag&&s.onFrag(k);updateNav()}, (fa&&fa.length===fr?fa[k-1]*1000:dur*k/(fr+1)*speed)/speed);
+      if(s.id==='flow'&&DECK.toastAt) later(()=>toast(camera+(DECK.flowToast||'여기까지가 전체 흐름입니다')), DECK.toastAt*1000/speed);
+      autoTimer=setTimeout(()=>{if(i<slides.length-1)run(i+1);else stopAuto()},dur);
+    });
+  };
+  run(from);
+}
+function stopAuto(){clearTimeout(autoTimer);autoTimer=null}
+window.__auto=startAuto;
+
+function fit(){const k=Math.min(innerWidth/1920,innerHeight/1080);slideEl.style.transform=`scale(${k})`}
+addEventListener('resize',()=>{fit();placeMascot(curStepNo)});
+addEventListener('keydown',e=>{
+  const k=e.key;
+  if(k==='n'||k==='N'){showCap=!showCap;$('#caption').classList.toggle('on',showCap);slideEl.classList.toggle('cap',showCap);return}
+  if(k==='p'||k==='P'){autoTimer?stopAuto():startAuto(1);return}
+  if(k==='f'||k==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();return}
+  if(k==='Escape'){if($('#lightbox').classList.contains('on')){$('#lightbox').classList.remove('on');return}if(openStepNo)closeCard();return}
+  if(k==='Enter'&&slides[cur].id==='flow'&&frag>0&&!openStepNo){openCard(frag);return}
+  if(['ArrowRight',' ','PageDown'].includes(k)){stopAuto();next()}
+  if(['ArrowLeft','PageUp'].includes(k)){stopAuto();prev()}
+  if(slides[cur].id==='closing'&&['1','2','3'].includes(k))choose(+k-1);
+});
+build(); fit(); go(0);
+</script>
+</body>
+</html>

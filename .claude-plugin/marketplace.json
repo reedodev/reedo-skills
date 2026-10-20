@@ -1,0 +1,25 @@
+{
+  "name": "reedo-skills",
+  "owner": {
+    "name": "Reedo"
+  },
+  "metadata": {
+    "description": "Korean creator & automation skills for Claude Code, tested in daily use",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "korean-creator-skills",
+      "description": "Korean tone check, Naver golden keywords, HWPX form filling, TTS tail fix, and work-log-to-lecture-deck",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/korean-tone-check",
+        "./skills/naver-golden-keywords",
+        "./skills/hwpx-form-fill",
+        "./skills/tts-tail-fix",
+        "./skills/work-to-lecture-deck"
+      ]
+    }
+  ]
+}

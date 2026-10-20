@@ -1,0 +1,8 @@
+.env
+*.hwpx
+!skills/**/examples/*.hwpx
+*.wav
+quotes.json
+node_modules/
+__pycache__/
+skills/work-to-lecture-deck/templates/fonts/

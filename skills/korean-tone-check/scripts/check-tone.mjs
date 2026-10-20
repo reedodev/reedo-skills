@@ -40,7 +40,8 @@ const ENDINGS = {
 const CASUAL = /(해|야|지|어|아|게|네|군|걸|래|니|냐|거든|잖아|더라|구나)$/;
 
 function classify(s) {
-  const core = s.replace(/["'”’」』)\]\s.!?…~]+$/u, '');
+  // drop a trailing parenthetical like "...돌립니다(위 test 배지)." before judging the ending
+  const core = s.replace(/[.!?…~\s]+$/u, '').replace(/\s*\([^()]*\)$/u, '').replace(/["'”’」』)\]\s.!?…~]+$/u, '');
   if (!/[가-힣]$/.test(core)) return 'other';
   if (ENDINGS.hamnida.test(core)) return 'hamnida';
   if (ENDINGS.haeyo.test(core)) return 'haeyo';

@@ -36,7 +36,8 @@ for (let i = 0; i < argv.length; i++) {
   seeds.push(argv[i]);
 }
 if (opt('file')) seeds.push(...fs.readFileSync(opt('file'), 'utf8').split(/\r?\n/).map((s) => s.trim()).filter(Boolean));
-if (!seeds.length) { console.error('usage: node golden-keywords.mjs <keyword...> [--file seeds.txt] [--related N] [--csv out.csv] [--json]'); process.exit(2); }
+const SELF_TEST = flag('self-test');
+if (!SELF_TEST && !seeds.length) { console.error('usage: node golden-keywords.mjs <keyword...> [--file seeds.txt] [--related N] [--csv out.csv] [--json]'); process.exit(2); }
 
 // ---------- env ----------
 if (fs.existsSync('.env')) {
@@ -47,7 +48,7 @@ if (fs.existsSync('.env')) {
 }
 const need = ['NAVER_AD_API_KEY', 'NAVER_AD_SECRET', 'NAVER_AD_CUSTOMER_ID', 'NAVER_CLIENT_ID', 'NAVER_CLIENT_SECRET'];
 const missing = need.filter((k) => !process.env[k]);
-if (missing.length) { console.error('missing credentials: ' + missing.join(', ') + ' (see SKILL.md)'); process.exit(2); }
+if (!SELF_TEST && missing.length) { console.error('missing credentials: ' + missing.join(', ') + ' (see SKILL.md)'); process.exit(2); }
 const E = process.env;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -91,6 +92,14 @@ function grade(vol, ratio) {
   if (vol >= 1000 && ratio <= 0.5) return 'A';
   if (vol >= 500 && ratio <= 2) return 'B';
   return '-';
+}
+
+// ---------- self test (no network) ----------
+if (SELF_TEST) {
+  const cases = [[grade(2500, 0.05), 'S'], [grade(1500, 0.4), 'A'], [grade(600, 1.9), 'B'], [grade(600, 2.5), '-'], [toNum('< 10'), 5], [toNum('1,234'), 1234], [flagOf('카지노 후기'), '제외'], [flagOf('대출 금리'), '주의'], [flagOf('캠핑의자'), '']];
+  const bad = cases.filter(([got, want]) => got !== want);
+  console.log(bad.length ? 'SELF-TEST FAIL ' + JSON.stringify(bad) : 'SELF-TEST OK (' + cases.length + ' cases)');
+  process.exit(bad.length ? 1 : 0);
 }
 
 // ---------- main ----------

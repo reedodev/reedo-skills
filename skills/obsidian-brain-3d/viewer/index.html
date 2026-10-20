@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain 3D · Knowledge Graph</title>
+<script>window.__errs=[];addEventListener('error',e=>window.__errs.push(String(e.message||e)));addEventListener('unhandledrejection',e=>window.__errs.push(String(e.reason)));</script>
+<!-- 3D models (CC BY 4.0): Brain by dgallichan (Sketchfab) / NIH 3D 3DPX-021161 · Skull: Visible Human Male (NLM Visible Human Project) / NIH 3D 3DPX-020591. Keep the visible credit line (#ccby) when you publish. See CREDITS.md -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#02060b;--ink:#dcefff;--dim:#6f8da6;--line:rgba(110,200,255,.38);--cy:#7fd0ff}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:'Segoe UI','Malgun Gothic',sans-serif;font-size:11px}
+body:before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 55% 60% at 36% 42%,#0b2236 0%,#04101c 50%,#02060b 100%);}
+body:after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(110,200,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(110,200,255,.035) 1px,transparent 1px);background-size:44px 44px;pointer-events:none}
+#gl{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+#app{position:absolute;inset:0;z-index:2;padding:12px;display:grid;grid-template-rows:44px minmax(0,1fr) 262px;gap:8px;pointer-events:none}
+.box{position:relative;border:1px solid var(--line);pointer-events:auto}
+.box:before,.box:after{content:'';position:absolute;width:11px;height:11px;border:1px solid var(--cy);pointer-events:none}
+.box:before{left:-1px;top:-1px;border-right:0;border-bottom:0}.box:after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+.solid{background:rgba(4,14,24,.78);backdrop-filter:blur(6px)}
+.chip{display:inline-block;background:var(--cy);color:#02101c;padding:2px 8px;font-size:9.5px;letter-spacing:.14em;font-weight:700}
+.cap{font-size:9.5px;letter-spacing:.1em;color:var(--dim)}
+.serif{font-family:'Cambria Math','Noto Serif KR','Batang','Times New Roman',serif}
+#hd{display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:rgba(4,14,24,.7)}
+#hd h1{font-size:19px;font-weight:400;letter-spacing:.06em;display:flex;align-items:baseline;gap:12px;white-space:nowrap}
+#hd h1 small{font-size:10px;color:var(--dim);letter-spacing:.14em}
+#tabs{display:flex;gap:0;border:1px solid var(--line)}
+#tabs button{background:transparent;color:var(--dim);border:0;padding:6px 18px;font:inherit;font-size:12px;cursor:pointer;letter-spacing:.08em}
+#tabs button.on{background:var(--cy);color:#02101c;font-weight:700}
+#bgSel{background:#06131f;color:var(--dim);border:0;border-left:1px solid var(--line);padding:0 10px;font:inherit;font-size:11.5px;letter-spacing:.04em;cursor:pointer;outline:none}#bgSel option{background:#06131f;color:#dcefff}
+#mid{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:8px;min-height:0}
+#mainBox{overflow:hidden}
+#mainV{position:absolute;inset:0}
+#sl{display:grid;grid-template-rows:repeat(3,1fr);gap:8px;min-height:0}
+.sv{overflow:hidden}.sv .v{position:absolute;inset:0}
+.sv .t{position:absolute;left:8px;top:7px;z-index:3}
+.sv .r{position:absolute;right:9px;top:8px;z-index:3;color:var(--dim);font-size:9.5px}
+.sv .f{position:absolute;left:9px;bottom:6px;z-index:3;font-size:9.5px;color:var(--dim)}
+#mTop{position:absolute;left:12px;top:10px;z-index:4;display:flex;gap:10px;align-items:center}
+#mBot{position:absolute;left:14px;right:14px;bottom:8px;z-index:4;display:flex;justify-content:space-between;color:var(--dim);font-size:9.5px}
+#svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.lab{position:absolute;pointer-events:none;font-size:10.5px;white-space:nowrap;z-index:4}
+.lab b{letter-spacing:.14em;font-size:9.5px;text-transform:uppercase}
+.lab span{display:block;color:#9fb8cc;font-size:10.5px}
+#card{position:absolute;left:14px;bottom:30px;width:238px;z-index:5;background:rgba(2,12,22,.86);border:1px solid var(--cy)}
+#card .h{background:var(--cy);color:#02101c;padding:4px 9px;font-weight:700;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#card dl{display:grid;grid-template-columns:54px 1fr;padding:6px 9px;gap:3px 6px;font-size:10px}
+#card dt{color:var(--dim)}#card dd{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ring{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border:1.5px solid #fff;border-radius:50%;box-shadow:0 0 14px #fff;pointer-events:none;z-index:4;animation:rg 1.6s infinite}
+@keyframes rg{50%{transform:scale(1.3);opacity:.5}}
+#bt{display:grid;grid-template-columns:1.75fr 1.2fr .95fr 1.15fr .9fr 1.75fr;gap:8px;min-height:0}
+.pn{padding:30px 8px 6px;overflow:hidden}
+.pn>.chip{position:absolute;left:8px;top:7px}.pn>.cap{position:absolute;right:9px;top:10px}
+.pn canvas{display:block}
+.lst{margin-top:3px;overflow:hidden}
+.rw{display:flex;gap:7px;align-items:center;height:17px;white-space:nowrap;font-size:10.5px;border-bottom:1px dotted rgba(127,208,255,.14)}
+.rw .cd{width:32px;flex:none;font-size:8.5px;text-align:center;color:#02101c;font-weight:700;padding:1px 0}
+.rw .ti{flex:1;overflow:hidden;text-overflow:ellipsis}
+.rw .ti small{color:#6f8da6;font-size:9.5px;margin-left:4px}
+.rw em{font-style:normal;color:#9db8cc;font-size:10px}
+.rw em b{color:#ffb04d;font-weight:400;margin-left:4px}
+.rw.hot{background:rgba(127,208,255,.12)}
+.eqline{font-style:italic;font-size:11px;color:#bfe3ff;padding:2px 0 5px;border-bottom:1px solid rgba(127,208,255,.3);margin-bottom:3px;line-height:1.5}
+#tip{position:fixed;display:none;pointer-events:none;z-index:30;background:rgba(2,12,22,.95);border:1px solid var(--cy);padding:5px 9px;max-width:340px}
+#tip small{display:block;color:var(--dim);font-size:10px;margin-top:2px}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="app">
+ <div class="box" id="hd"><h1 class="serif"><span id="ttl">Knowledge Brain</span> <small>KNOWLEDGE GRAPH · 3D</small></h1><div id="tabs"><button id="tB" class="on" title="B">브레인 BRAIN</button><button id="tT" title="T">세계수 TREE</button><select id="bgSel" title="배경"><option value="net">신경망</option><option value="hex">육각격자</option><option value="space">깊은 우주</option><option value="rain">데이터 폭포</option><option value="contour">등고선</option><option value="none">없음</option></select></div><span class="cap" id="clk"></span></div>
+ <div id="mid">
+  <div class="box" id="mainBox"><div id="mainV"></div><div id="mTop"><span class="chip" id="mChip">X-RAY</span><span class="cap" id="mCap"></span></div><svg id="svg"></svg><div id="labs"></div><div id="ring"></div><div id="card"></div><div id="mBot"><span id="cam"></span><span id="pts"></span></div></div>
+  <div id="sl">
+   <div class="box sv" id="sA"><div class="v"></div><span class="t chip">AXIAL</span><span class="r"></span><span class="f"></span></div>
+   <div class="box sv" id="sC"><div class="v"></div><span class="t chip">CORONAL</span><span class="r"></span><span class="f"></span></div>
+   <div class="box sv" id="sS"><div class="v"></div><span class="t chip">SAGITTAL</span><span class="r"></span><span class="f"></span></div>
+  </div>
+ </div>
+ <div id="bt">
+  <div class="box solid pn"><span class="chip">INGEST</span><span class="cap">최근 생긴 문서 · new</span><div class="lst" id="l1"></div></div>
+  <div class="box solid pn"><span class="chip">LINKED</span><span class="cap" id="l2c">연결된 문서</span><canvas id="c2"></canvas><div class="lst" id="l2"></div></div>
+  <div class="box solid pn"><span class="chip">f(x)</span><span class="cap">일별 새 문서 · daily</span><canvas id="c3"></canvas><div class="lst" id="l3"></div></div>
+  <div class="box solid pn"><span class="chip">LOBES</span><span class="cap">그룹별 수 · 최근+</span><canvas id="c5"></canvas><div class="lst" id="l5"></div></div>
+  <div class="box solid pn"><span class="chip">CHORD</span><span class="cap">그룹 사이 연결</span><canvas id="c4"></canvas><div class="lst" id="l4"></div></div>
+  <div class="box solid pn"><span class="chip">TAIL -F</span><span class="cap">최근 문서 순환 · recent</span><div class="eqline serif" id="eqL"></div><div class="lst" id="l6"></div></div>
+ </div>
+</div>
+<div id="tip"></div>
+<div id="ccby" style="position:fixed;right:14px;bottom:3px;z-index:5;font:10px/1.3 sans-serif;color:rgba(190,215,235,.6);pointer-events:none;text-align:right"><span id="dataInfo"></span> · 3D models: Brain by dgallichan · Visible Human Male Skull (NLM) · NIH 3D · CC BY 4.0</div>
+<script src="three.min.js"></script>
+<script src="data.js"></script>
+<script src="models.js"></script>
+<script>
+/* ===== 템플릿 설정 ===== */
+const CFG={
+ regions:[
+  {key:'frontal',col:'#ffb04d',center:[.62,.22,0],dir:[1,.35,.2]},
+  {key:'parietal',col:'#4fd6ff',center:[-.1,.5,0],dir:[-.2,1,.2]},
+  {key:'temporal',col:'#ff6f9a',center:[.2,-.22,.42],dir:[.4,-.6,1]},
+  {key:'occipital',col:'#a98bff',center:[-.8,.12,0],dir:[-1,.2,.3]},
+  {key:'cerebellum',col:'#52f0b0',center:[-.55,-.42,0],dir:[-.8,-.8,.7],tree:'뿌리 roots'},
+  {key:'brainstem',col:'#ffe9a8',center:[-.07,-.6,0],dir:[0,-1,.3],tree:'줄기 trunk'}
+ ],
+ rotateSpeed:.09,
+ jaw:false,           // 아래턱·이빨 표시 (얼굴처럼 보이지 않게 기본은 끔)
+ skull:{scale:1.34,x:.1,y:-.22},  // 두개골 맞춤
+ bloom:{strength:.6,radius:1.0},
+ background:'net'     // net | hex | space | rain | contour | none   
+};
+/* ======================== */
+const B=window.BRAIN,N=B.nodes,R=CFG.regions;
+const codeOf=(s,i)=>{s=String(s||'').trim();if(!s||s==='-')return 'R'+(i+1);const w=s.replace(/\(.*\)/,'').trim()||s;return /^[\x00-\x7f]+$/.test(w)?w.replace(/[^A-Za-z0-9]/g,'').slice(0,3).toUpperCase()||'R'+(i+1):w.slice(0,2)};
+R.forEach((r,i)=>{const g=(B.regions||[])[i]||{name:'-'};r.ko=String(g.name).replace(/[<>&"]/g,'');r.code=codeOf(g.name,i)});
+{const seen={};R.forEach(r=>{seen[r.code]=(seen[r.code]||0)+1});R.forEach((r,i)=>{if(seen[r.code]>1){const w=r.ko.replace(/[^A-Za-z0-9가-힣]/g,'');r.code=(w.slice(0,1)+w.slice(-1)).toUpperCase()||'R'+(i+1)}})}
+CFG.recentFrom=B.stat.recentFrom||'';CFG.chartFrom=B.stat.chartFrom||'';
+document.title=(B.stat.title||'Knowledge')+' · Brain 3D';
+const $=id=>document.getElementById(id);const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const mul=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};const rnd=mul(1019);
+const OKS=new Set((B.stat.okStatus||[]).map(s=>String(s).toLowerCase()));const isOK=n=>OKS.has(String(n[4]||'').toLowerCase());
+const adj=N.map(()=>[]);B.edges.forEach(([a,b])=>{adj[a].push(b);adj[b].push(a)});
+const maxDate=N.reduce((m,n)=>n[5]>m?n[5]:m,'');
+const days=[];for(let d=new Date(CFG.chartFrom);d.toISOString().slice(0,10)<=maxDate;d.setDate(d.getDate()+1))days.push(d.toISOString().slice(0,10));
+
+/* ---------- 뇌·두개골 표면 ---------- */
+const GD=[[.8,.5,.3,15,.3,1],[-.4,.9,.5,21,1.1,1],[.2,-.6,.9,27,2.3,1],[.9,.1,-.7,35,4,.7]];
+const gnoise=(x,y,z)=>{let s=0;for(const d of GD)s+=d[5]*Math.sin((d[0]*x+d[1]*y+d[2]*z)*d[3]+d[4]);return s/3.7};
+const sm=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
+function softW(px,py,pz){const w=[0,0,0,0,0,0];let s=0;for(let i=0;i<4;i++){const c=R[i].center;const dz=(i===2?Math.abs(pz):pz)-c[2];w[i]=Math.exp(-((px-c[0])*(px-c[0])+(py-c[1])*(py-c[1])+dz*dz*.6)/.07);s+=w[i]}for(let i=0;i<4;i++)w[i]/=s;return w}
+function fixSeams(g){const p=g.attributes.position,n=g.attributes.normal,m=new Map(),key=i=>Math.round(p.getX(i)*3000)+','+Math.round(p.getY(i)*3000)+','+Math.round(p.getZ(i)*3000);
+ for(let i=0;i<p.count;i++){const k=key(i);let e=m.get(k);if(!e){e=[0,0,0];m.set(k,e)}e[0]+=n.getX(i);e[1]+=n.getY(i);e[2]+=n.getZ(i)}
+ for(let i=0;i<p.count;i++){const e=m.get(key(i));const l=Math.hypot(e[0],e[1],e[2])||1;n.setXYZ(i,e[0]/l,e[1]/l,e[2]/l)}}
+function buildPart(seg,xf,fixed){
+ const geo=new THREE.SphereGeometry(1,seg[0],seg[1]);const P=geo.attributes.position,n=P.count;
+ const wA=new Float32Array(n*3),wB=new Float32Array(n*3),gr=new Float32Array(n),reg=new Int8Array(n);const u=new THREE.Vector3();
+ for(let i=0;i<n;i++){u.set(P.getX(i),P.getY(i),P.getZ(i));const r=xf(u);P.setXYZ(i,r.x,r.y,r.z);const w=fixed>=0?[0,0,0,0,0,0].map((_,k)=>k===fixed?1:0):(r.w||[0,0,0,0,0,0]);
+  wA.set([w[0],w[1],w[2]],i*3);wB.set([w[3],w[4],w[5]],i*3);gr[i]=r.g;let bi=0;for(let k=1;k<6;k++)if(w[k]>w[bi])bi=k;reg[i]=bi}
+ geo.setAttribute('wA',new THREE.BufferAttribute(wA,3));geo.setAttribute('wB',new THREE.BufferAttribute(wB,3));geo.setAttribute('groove',new THREE.BufferAttribute(gr,1));
+ geo.computeVertexNormals();fixSeams(geo);return{geo,reg,count:n};
+}
+/* ---------- 실제 3D 모델 (NIH 3D, CC-BY) ---------- */
+const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
+function dec(b64,T){const s=atob(b64);const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new T(u.buffer)}
+function modelGeo(p,xf){const q=dec(p.pos,Int16Array);const n=q.length/3;const pos=new Float32Array(q.length);for(let i=0;i<n;i++){const v=xf([q[i*3]/32767,q[i*3+1]/32767,q[i*3+2]/32767]);pos[i*3]=v[0];pos[i*3+1]=v[1];pos[i*3+2]=v[2]}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(pos,3));if(p.idx)geo.setIndex(new THREE.BufferAttribute(dec(p.idx,p.idx32?Uint32Array:Uint16Array),1));geo.computeVertexNormals();return geo}
+// 뇌: 모델의 앞(-z)을 +x로, 위는 그대로
+const brainParts=[];
+MODELS.brain.parts.forEach(p=>{const geo=modelGeo(p,v=>[-v[2],v[1]+.04,v[0]]);const P=geo.attributes.position,n=P.count;
+ const wA=new Float32Array(n*3),wB=new Float32Array(n*3),gr=new Float32Array(n),reg=new Int8Array(n);
+ for(let i=0;i<n;i++){const x=P.getX(i),y=P.getY(i),z=P.getZ(i);let w;
+  if(y<-.38&&Math.abs(z)<.14&&x>-.45&&x<.12)w=[0,0,0,0,0,1];else if(y<-.28&&x<-.18)w=[0,0,0,0,1,0];else w=softW(x,y,z);
+  wA.set([w[0],w[1],w[2]],i*3);wB.set([w[3],w[4],w[5]],i*3);let bi=0;for(let k=1;k<6;k++)if(w[k]>w[bi])bi=k;reg[i]=bi}
+ geo.setAttribute('wA',new THREE.BufferAttribute(wA,3));geo.setAttribute('wB',new THREE.BufferAttribute(wB,3));geo.setAttribute('groove',new THREE.BufferAttribute(gr,1));
+ brainParts.push({geo,reg,count:n})});
+// 두개골: 모델의 앞(-x)을 +x로 (180° 회전), 크기·위치는 CFG.skull
+const SKJ=['Mandible','Lower teeth','Upper teeth'];
+const skullParts=MODELS.skull.parts.filter(p=>CFG.jaw||!SKJ.includes(p.name)).map(p=>({name:p.name,geo:modelGeo(p,v=>[-v[0]*CFG.skull.scale+CFG.skull.x,v[1]*CFG.skull.scale+CFG.skull.y,-v[2]*CFG.skull.scale])}));
+// 깊은 구조(뇌실·뇌량·시상)는 수식 그대로
+function tubeGeo(pts,r,seg){const c=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)));return new THREE.TubeGeometry(c,seg||90,r,10,false)}
+const ccGeo=tubeGeo([[-.62,.1,0],[-.4,.27,0],[0,.32,0],[.4,.27,0],[.64,.12,0]],.03,60);
+const ventL=new THREE.SphereGeometry(1,40,28);ventL.scale(.3,.075,.06);const ventR=ventL.clone();ventL.translate(.05,.13,.09);ventR.translate(.05,.13,-.09);
+const thal=new THREE.SphereGeometry(1,28,20);thal.scale(.1,.07,.1);thal.translate(-.05,.0,0);
+// 노드 후보(뇌 표면 마루)
+const cand=R.map(()=>[]);brainParts.forEach(pt=>{const G=pt.geo.attributes.groove;for(let i=0;i<pt.count;i++)if(G.getX(i)<.35)cand[pt.reg[i]].push([pt,i])});
+
+/* ---------- three ---------- */
+const cv=$('gl');const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true,preserveDrawingBuffer:true});
+const PX=Math.min(devicePixelRatio,2);renderer.setPixelRatio(PX);renderer.setScissorTest(true);
+const scene=new THREE.Scene(),root=new THREE.Group();scene.add(root);
+const UA=R.map(()=>1);
+const UNI={t:{value:0},px:{value:PX},uC:{value:R.map(r=>new THREE.Color(r.col))},uA:{value:UA.slice()},uMorph:{value:0},uSm:{value:0},uSc:{value:0},uSt:{value:.085},uSa:{value:new THREE.Vector3(0,1,0)},uK:{value:1}};
+const SLAB='uniform float uSm,uSc,uSt,uMorph,t,px,uK;uniform vec3 uSa;float slabF(vec3 p){float inn=step(abs(dot(p,uSa)-uSc),uSt);return uSm<.5?1.:(uSm<1.5?1.+1.3*inn:mix(.035,1.,inn));}';
+const ADD={transparent:true,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending};
+// X-ray 뼈/깊은 구조
+function boneMat(col,str,rimPow,side){return new THREE.ShaderMaterial({...ADD,side:side||THREE.DoubleSide,uniforms:{...UNI,uCol:{value:new THREE.Color(col)},uStr:{value:str},uRP:{value:rimPow}},
+ vertexShader:SLAB+'varying vec3 vN,vV;varying float vS;attribute float groove;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vN=normalize(normalMatrix*normal);vV=-mv.xyz;vS=slabF(position);gl_Position=projectionMatrix*mv;}',
+ fragmentShader:'uniform vec3 uCol;uniform float uStr,uRP,uMorph;varying vec3 vN,vV;varying float vS;void main(){float nv=abs(dot(normalize(vN),normalize(vV)));float f=pow(1.-nv,uRP);float th=.012/(nv+.2);float k=(f*1.1+th+.012)*uStr*vS*(1.-uMorph*.93);gl_FragColor=vec4(uCol*k*1.5,clamp(k,0.,1.));}'})}
+const skullMat=boneMat(0xd6ecff,.5,2.2);
+skullParts.forEach(p=>root.add(new THREE.Mesh(p.geo,skullMat)));
+const deepMat=boneMat(0x6fb8ff,.7,1.8);[ventL,ventR,thal,ccGeo].forEach(g=>root.add(new THREE.Mesh(g,deepMat)));
+// 뇌 (엑스레이 + 영역 빛)
+const brainMat=new THREE.ShaderMaterial({...ADD,side:THREE.DoubleSide,uniforms:UNI,
+ vertexShader:SLAB+'uniform vec3 uC[6];uniform float uA[6];attribute vec3 wA,wB;attribute float groove;varying vec3 vCol,vN,vV;varying float vG,vP,vS;void main(){vCol=wA.x*uC[0]*uA[0]+wA.y*uC[1]*uA[1]+wA.z*uC[2]*uA[2]+wB.x*uC[3]*uA[3]+wB.y*uC[4]*uA[4]+wB.z*uC[5]*uA[5];vG=groove;vP=position.x*5.+position.y*3.;vS=slabF(position);vec4 mv=modelViewMatrix*vec4(position,1.);vN=normalize(normalMatrix*normal);vV=-mv.xyz;gl_Position=projectionMatrix*mv;}',
+ fragmentShader:'uniform float t,uMorph;varying vec3 vCol,vN,vV;varying float vG,vP,vS;void main(){float nv=abs(dot(normalize(vN),normalize(vV)));float f=pow(1.-nv,1.9);float flow=.85+.15*sin(vP-t*1.5);float k=(.03+f*.42)*(1.-vG*.85)*flow*vS*(1.-uMorph*.95);vec3 c=vec3(.5,.82,1.)*.55+vCol*1.5;gl_FragColor=vec4(c*k,clamp(k*1.2,0.,1.));}'});
+brainParts.forEach(pt=>root.add(new THREE.Mesh(pt.geo,brainMat)));
+
+/* ---------- 문서 위치: 뇌 표면 / 세계수 잎 ---------- */
+const NP=new Float32Array(N.length*3),NP2=new Float32Array(N.length*3);
+N.forEach((n,i)=>{const list=cand[n[1]];const[pt,vi]=list[Math.floor(rnd()*list.length)];const P=pt.geo.attributes.position,Nr=pt.geo.attributes.normal;NP.set([P.getX(vi)+Nr.getX(vi)*.014,P.getY(vi)+Nr.getY(vi)*.014,P.getZ(vi)+Nr.getZ(vi)*.014],i*3)});
+// ----- 세계수 생성 (황금각 137.5°, 가지 길이 비율 1/φ 근사 0.62) -----
+const GA=2.399963;const treeSegs=[];const tips=R.map(()=>[]);
+function grow(pos,dir,len,depth,reg,target,maxD){
+ const end=pos.clone().addScaledVector(dir,len);treeSegs.push({a:pos.clone(),b:end.clone(),reg,depth});
+ if(depth>=maxD){tips[reg].push({p:end.clone(),d:dir.clone()});return}
+ const nch=depth<2?3:2;const P0=(Math.abs(dir.y)<.9?new THREE.Vector3().crossVectors(dir,V3(0,1,0)):new THREE.Vector3().crossVectors(dir,V3(1,0,0))).normalize();
+ for(let k=0;k<nch;k++){const az=k*Math.PI*2/nch+depth*GA;const perp=P0.clone().applyAxisAngle(dir,az);const spread=.5+.12*rnd();
+  let c=dir.clone().applyAxisAngle(perp,spread);const tt=target.clone().sub(end).normalize();c.lerp(tt,.32).normalize();grow(end,c,len*.62,depth+1,reg,target,maxD)}}
+const trunkPts=[];for(let i=0;i<=8;i++){const t=i/8;trunkPts.push(V3(-.05*t*t+.03*Math.sin(t*6),-1+1.18*t,.035*Math.sin(t*5)))}
+for(let i=1;i<trunkPts.length;i++)treeSegs.push({a:trunkPts[i-1].clone(),b:trunkPts[i].clone(),reg:5,depth:-1});
+const crownTop=trunkPts[8].clone(),base=trunkPts[0].clone();
+const zs=[-.5,0,.5];
+// 한 덩어리 둥근 수관: 가지 14개를 황금각으로 돌려 가며 영역을 번갈아 배정
+const limbs=[];for(let k=0;k<14;k++){const r=k%4;const az=k*GA+.7;const RR=.9+.3*Math.abs(Math.sin(k*2.3));const hy=.45+.55*Math.abs(Math.cos(k*1.7));const tgt=V3(Math.cos(az)*RR,hy,Math.sin(az)*RR*.9);const dir=tgt.clone().sub(crownTop).normalize();const L=tgt.distanceTo(crownTop)/2.48*1.18;const from=tips[r].length;grow(crownTop.clone(),dir,L,0,r,tgt,5);limbs.push({r,from,to:tips[r].length})}
+const rootT=[[-.6,-1.45,.3],[-.1,-1.6,-.5],[.5,-1.4,.3],[-.35,-1.55,-.35],[.2,-1.62,.45],[.75,-1.5,-.3]];
+rootT.forEach(t=>{const tg=V3(...t);const dir=tg.clone().sub(base).normalize();grow(base.clone(),dir,tg.distanceTo(base)/2.39*1.12,0,4,tg,4)});
+// 잎 = 문서 (페르마 나선 배치)
+const tcount=R.map(()=>new Map());
+N.forEach((n,i)=>{const r=n[1];let p;if(r===5){const k=tcount[5].size;tcount[5].set(i,1);const t=(k+.5)/30;const q=trunkPts[Math.min(7,Math.floor(t*8))];const th=k*GA;p=V3(q.x+Math.cos(th)*.05,q.y,q.z+Math.sin(th)*.05)}
+ else{const L=tips[r];const ti=Math.floor(rnd()*L.length);const tp=L[ti];const c=(tcount[r].get(ti)||0);tcount[r].set(ti,c+1);const P0=(Math.abs(tp.d.y)<.9?new THREE.Vector3().crossVectors(tp.d,V3(0,1,0)):new THREE.Vector3().crossVectors(tp.d,V3(1,0,0))).normalize();const P1=new THREE.Vector3().crossVectors(tp.d,P0);const rr=.013*Math.sqrt(c+1),th=c*GA;p=tp.p.clone().addScaledVector(P0,Math.cos(th)*rr).addScaledVector(P1,Math.sin(th)*rr).addScaledVector(tp.d,.01*Math.sqrt(c))}
+ NP2.set([p.x,p.y,p.z],i*3)});
+const tipC=R.map((_,r)=>{let L=tips[r];const lb=limbs.find(l=>l.r===r);if(lb)L=L.slice(lb.from,lb.to);const a=V3(0,0,0);if(!L.length)return V3(-.06,-.5,0);L.forEach(t=>a.add(t.p));return a.multiplyScalar(1/L.length)});
+
+/* 점 */
+const recentCnt=R.map(()=>0);N.forEach(n=>{if(n[5]>=CFG.recentFrom)recentCnt[n[1]]++});
+{const n=N.length,col=new Float32Array(n*3),siz=new Float32Array(n),pul=new Float32Array(n),rg=new Float32Array(n);
+ N.forEach((x,i)=>{const c=new THREE.Color(R[x[1]].col);col.set([c.r,c.g,c.b],i*3);siz[i]=(2.6+Math.min(Math.sqrt(x[2]),10)*.7)*(isOK(x)?1.5:1);pul[i]=x[5]>=CFG.recentFrom?1:0;rg[i]=x[1]});
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(NP,3));g.setAttribute('p2',new THREE.BufferAttribute(NP2,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));g.setAttribute('size',new THREE.BufferAttribute(siz,1));g.setAttribute('pul',new THREE.BufferAttribute(pul,1));g.setAttribute('reg',new THREE.BufferAttribute(rg,1));
+ const m=new THREE.ShaderMaterial({...ADD,uniforms:UNI,vertexShader:SLAB+'uniform float uA[6];attribute vec3 p2,color;attribute float size,pul,reg;varying vec3 vc;varying float va;float pick(float r){return uA[0]*step(abs(r),.5)+uA[1]*step(abs(r-1.),.5)+uA[2]*step(abs(r-2.),.5)+uA[3]*step(abs(r-3.),.5)+uA[4]*step(abs(r-4.),.5)+uA[5]*step(abs(r-5.),.5);}void main(){vec3 p=mix(position,p2,uMorph);vc=color;float a=pick(reg);float s=slabF(p);va=(.3+.7*a)*s*(1.+pul*.7)*(.6+uMorph*.9);vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;float k=1.+pul*(.5+.5*sin(t*2.6+p.x*11.));gl_PointSize=size*k*(.8+.5*a)*(1.+uMorph*.8)*px*uK*(4.4/-mv.z);}',
+  fragmentShader:'varying vec3 vc;varying float va;void main(){vec2 c=gl_PointCoord-.5;float d=length(c)*2.;if(d>1.)discard;float core=smoothstep(.32,0.,d),halo=exp(-d*d*4.5)*.5;gl_FragColor=vec4(mix(vc,vec3(1.),core*.5),(core+halo)*va);}'});
+ const pts=new THREE.Points(g,m);pts.frustumCulled=false;root.add(pts)}
+/* 연결 호 (뇌 표면 위 / 세계수 잎 사이) */
+{const SEG=12;const pos=[],pos2=[],col=[];const arcs=(Pp,out)=>{const A=new THREE.Vector3(),Bp=new THREE.Vector3(),M=new THREE.Vector3();
+ B.edges.forEach(([a,b])=>{A.fromArray(Pp,a*3);Bp.fromArray(Pp,b*3);const len=A.distanceTo(Bp);M.copy(A).add(Bp).multiplyScalar(.5);const dir=M.clone().sub(V3(0,.02,0)).normalize();M.addScaledVector(dir,.1+len*.34);let prev=A.clone();for(let s=1;s<=SEG;s++){const t=s/SEG,q=A.clone().multiplyScalar((1-t)*(1-t)).add(M.clone().multiplyScalar(2*(1-t)*t)).add(Bp.clone().multiplyScalar(t*t));out.push(prev.x,prev.y,prev.z,q.x,q.y,q.z);prev=q}})};
+ arcs(NP,pos);arcs(NP2,pos2);
+ B.edges.forEach(([a,b])=>{const ca=new THREE.Color(R[N[a][1]].col),cb=new THREE.Color(R[N[b][1]].col);for(let s=1;s<=SEG;s++){const c1=ca.clone().lerp(cb,(s-1)/SEG),c2=ca.clone().lerp(cb,s/SEG);col.push(c1.r,c1.g,c1.b,c2.r,c2.g,c2.b)}});
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('p2',new THREE.Float32BufferAttribute(pos2,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+ root.add(Object.assign(new THREE.LineSegments(g,new THREE.ShaderMaterial({...ADD,uniforms:UNI,vertexShader:SLAB+'attribute vec3 p2,color;varying vec3 vc;varying float va;void main(){vec3 p=mix(position,p2,uMorph);vc=color;va=slabF(p)*.06*(1.-uMorph*.45);gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}',fragmentShader:'varying vec3 vc;varying float va;void main(){gl_FragColor=vec4(vc*1.4,va);}'})),{frustumCulled:false}))}
+/* 세계수: 가지(섬유 다발) + 바닥 극좌표 격자 + 로그나선 */
+{const pos=[],col=[];const e1=new THREE.Vector3(),e2=new THREE.Vector3();
+ treeSegs.forEach(s=>{const c=s.depth<0?new THREE.Color('#9ff4ff'):new THREE.Color(R[s.reg].col).lerp(new THREE.Color('#d8fbff'),.3+.08*Math.max(0,3-s.depth));const dim=s.depth<0?1:Math.max(.35,1-s.depth*.16);
+  const strands=s.depth<=1?5:1;const d=s.b.clone().sub(s.a);const len=d.length();const dn=d.clone().normalize();e1.copy(Math.abs(dn.y)<.9?new THREE.Vector3().crossVectors(dn,V3(0,1,0)):new THREE.Vector3().crossVectors(dn,V3(1,0,0))).normalize();e2.crossVectors(dn,e1);
+  const rr=s.depth<0?.032:(.02/(1+s.depth*.9));
+  for(let k=0;k<strands;k++){let prev=null;const ph=k*Math.PI*2/strands;const sub=strands>1?7:1;for(let j=0;j<=sub;j++){const t=j/sub;const w=strands>1?rr*(1-.4*t):0;const a=ph+t*Math.PI*1.4;const q=s.a.clone().addScaledVector(d,t).addScaledVector(e1,Math.cos(a)*w).addScaledVector(e2,Math.sin(a)*w);if(prev){pos.push(prev.x,prev.y,prev.z,q.x,q.y,q.z);col.push(c.r*dim,c.g*dim,c.b*dim,c.r*dim,c.g*dim,c.b*dim)}prev=q}}});
+ // 바닥 격자
+ const gy=-1.72,gc=new THREE.Color('#5fb8ff');const push=(a,b,k)=>{pos.push(a[0],a[1],a[2],b[0],b[1],b[2]);col.push(gc.r*k,gc.g*k,gc.b*k,gc.r*k,gc.g*k,gc.b*k)};
+ for(let i=1;i<=10;i++){const r=i*.22;for(let j=0;j<72;j++){const a=j/72*6.2832,b=(j+1)/72*6.2832;push([Math.cos(a)*r,gy,Math.sin(a)*r],[Math.cos(b)*r,gy,Math.sin(b)*r],.35)}}
+ for(let j=0;j<24;j++){const a=j/24*6.2832;push([Math.cos(a)*.1,gy,Math.sin(a)*.1],[Math.cos(a)*2.2,gy,Math.sin(a)*2.2],.22)}
+ const sc=new THREE.Color('#ffe9a8');for(let j=0;j<360;j++){const a=j*.05,b=(j+1)*.05;const f=r=>[Math.cos(r)*.12*Math.exp(.14*r),gy+.002,Math.sin(r)*.12*Math.exp(.14*r)];const A=f(a),Bq=f(b);if(Math.hypot(A[0],A[2])>2.2)break;pos.push(...A,...Bq);col.push(sc.r,sc.g,sc.b,sc.r,sc.g,sc.b)}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+ root.add(Object.assign(new THREE.LineSegments(g,new THREE.ShaderMaterial({...ADD,uniforms:UNI,vertexShader:SLAB+'attribute vec3 color;varying vec3 vc;varying float va;void main(){vc=color;va=slabF(position)*uMorph*.95*(.8+.2*sin(position.y*7.-t*2.2));gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 vc;varying float va;void main(){gl_FragColor=vec4(vc*1.3,va);}'})),{frustumCulled:false}))}
+// ===== 영혼의 나무 효과: 늘어진 빛 가닥 · 빛 씨앗 · 바닥 빛 웅덩이 =====
+{const cyan=new THREE.Color('#6ff3ff'),white=new THREE.Color('#ffffff'),vio=new THREE.Color('#b99bff');
+ const pos=[],col=[],aS=[],aPh=[],aLen=[];const endPos=[],endCol=[],endPh=[];const SEG=14;
+ for(let r=0;r<4;r++){tips[r].forEach(tp=>{if(rnd()<.5)return;const nS=2;for(let k=0;k<nS;k++){const ph=rnd()*6.283,len=.5+rnd()*1.15;const drift=V3(tp.d.x*.28+(rnd()-.5)*.15,0,tp.d.z*.28+(rnd()-.5)*.15);const st=tp.p.clone().add(V3((rnd()-.5)*.05,0,(rnd()-.5)*.05));
+  const base=new THREE.Color(R[r].col).lerp(rnd()<.5?cyan:vio,.5);let prev=null;
+  for(let j=0;j<=SEG;j++){const s=j/SEG;const q=st.clone().addScaledVector(drift,s*len*.6).add(V3(0,-len*s,0));q.x+=Math.sin(s*5+ph)*.03*s;
+   if(prev){const c1=base.clone().lerp(white,Math.max(0,(j-1)/SEG-.4)*.8),c2=base.clone().lerp(white,Math.max(0,j/SEG-.4)*.8);const f1=1-(j-1)/SEG*.5,f2=1-j/SEG*.5;pos.push(prev.q.x,prev.q.y,prev.q.z,q.x,q.y,q.z);col.push(c1.r*f1,c1.g*f1,c1.b*f1,c2.r*f2,c2.g*f2,c2.b*f2);aS.push((j-1)/SEG,s);aPh.push(ph,ph);aLen.push(len,len)}
+   prev={q}}
+  endPos.push(prev.q.x,prev.q.y,prev.q.z);const ce=base.clone().lerp(white,.6);endCol.push(ce.r,ce.g,ce.b);endPh.push(ph)}})}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('aS',new THREE.Float32BufferAttribute(aS,1));g.setAttribute('aPh',new THREE.Float32BufferAttribute(aPh,1));g.setAttribute('aLen',new THREE.Float32BufferAttribute(aLen,1));
+ root.add(Object.assign(new THREE.LineSegments(g,new THREE.ShaderMaterial({...ADD,uniforms:UNI,
+  vertexShader:SLAB+'attribute float aS,aPh,aLen;attribute vec3 color;varying vec3 vc;varying float va;void main(){vec3 p=position;float sw=aS*aS;p.x+=sin(t*.7+aPh+aS*3.)*.05*sw*aLen;p.z+=cos(t*.6+aPh*1.3+aS*2.5)*.05*sw*aLen;float pulse=pow(.5+.5*sin(aS*9.-t*2.4+aPh*6.),3.);vc=color;va=slabF(p)*uMorph*(.09+.5*pulse)*(1.-aS*.3);gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}',
+  fragmentShader:'varying vec3 vc;varying float va;void main(){gl_FragColor=vec4(vc*1.5,va);}'})),{frustumCulled:false}));
+ // 가닥 끝의 빛방울
+ const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.Float32BufferAttribute(endPos,3));pg.setAttribute('color',new THREE.Float32BufferAttribute(endCol,3));pg.setAttribute('aPh',new THREE.Float32BufferAttribute(endPh,1));
+ root.add(Object.assign(new THREE.Points(pg,new THREE.ShaderMaterial({...ADD,uniforms:UNI,
+  vertexShader:SLAB+'attribute float aPh;attribute vec3 color;varying vec3 vc;varying float va;void main(){vec3 p=position;p.x+=sin(t*.7+aPh+3.)*.05;p.z+=cos(t*.6+aPh*1.3+2.5)*.05;vc=color;va=slabF(p)*uMorph*(.45+.55*sin(t*1.6+aPh*5.));vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;gl_PointSize=(6.+3.*sin(t*2.+aPh))*px*uK*(4.4/-mv.z);}',
+  fragmentShader:'varying vec3 vc;varying float va;void main(){vec2 c=gl_PointCoord-.5;float d=length(c)*2.;if(d>1.)discard;gl_FragColor=vec4(vc,(smoothstep(.3,0.,d)+exp(-d*d*4.)*.6)*va);}'})),{frustumCulled:false}));
+ // 위로 떠오르는 빛 씨앗
+ const NS=420,sd=new Float32Array(NS*4);for(let i=0;i<NS;i++){const a=rnd()*6.283,rr=.2+Math.sqrt(rnd())*1.9;sd.set([Math.cos(a)*rr,rnd()*3.4-1.7,Math.sin(a)*rr,.04+rnd()*.1],i*4)}
+ const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(NS*3),3));sg.setAttribute('sd',new THREE.BufferAttribute(sd,4));
+ root.add(Object.assign(new THREE.Points(sg,new THREE.ShaderMaterial({...ADD,uniforms:UNI,
+  vertexShader:SLAB+'attribute vec4 sd;varying float va;void main(){float y=mod(sd.y+1.7+t*sd.w,3.4)-1.7;vec3 p=vec3(sd.x+sin(t*.4+sd.w*20.)*.25,y,sd.z+cos(t*.35+sd.w*17.)*.25);va=slabF(p)*uMorph*sin(3.14159*(y+1.7)/3.4)*(.55+.45*sin(t*2.+sd.w*60.));vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;gl_PointSize=(5.+sd.w*60.)*px*uK*(4.4/-mv.z);}',
+  fragmentShader:'varying float va;void main(){vec2 c=gl_PointCoord-.5;float d=length(c)*2.;if(d>1.)discard;gl_FragColor=vec4(.85,1.,1.,(smoothstep(.25,0.,d)+exp(-d*d*5.)*.7)*va);}'})),{frustumCulled:false}));
+ // 바닥 빛 웅덩이
+ const pl=new THREE.PlaneGeometry(5.2,5.2);pl.rotateX(-Math.PI/2);pl.translate(0,-1.7,0);
+ root.add(new THREE.Mesh(pl,new THREE.ShaderMaterial({...ADD,side:THREE.DoubleSide,uniforms:UNI,vertexShader:'varying vec2 vu;void main(){vu=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+  fragmentShader:'uniform float uMorph,t;varying vec2 vu;void main(){float d=length(vu-.5)*2.;float a=exp(-d*d*3.2)*.5*uMorph*(.85+.15*sin(t*1.3));vec3 c=mix(vec3(.25,.95,1.),vec3(.75,.45,1.),clamp(d,0.,1.));gl_FragColor=vec4(c,a);}'})));
+}
+/* ---------- 배경: 멀리 깔린 컴퓨터 신경망 ---------- */
+const NET=new THREE.Group();scene.add(NET);NET.position.z=-3.2;
+{const NPnt=820;const P=[];for(let i=0;i<NPnt;i++){const layer=Math.floor(rnd()*3);P.push([(rnd()*2-1)*7.5,(rnd()*2-1)*4.6,-layer*1.6-rnd()*1.2])}
+ // 가까운 점 3개와 연결
+ const E=[];for(let i=0;i<NPnt;i++){const d=[];for(let j=0;j<NPnt;j++){if(i===j)continue;const dx=P[i][0]-P[j][0],dy=P[i][1]-P[j][1],dz=P[i][2]-P[j][2];d.push([dx*dx+dy*dy+dz*dz,j])}d.sort((a,b)=>a[0]-b[0]);for(let k=0;k<3;k++){const j=d[k][1];if(i<j&&d[k][0]<3.4)E.push([i,j])}}
+ const UNET={t:{value:0},px:{value:PX},uM:{value:0},uCa:{value:new THREE.Color('#3fb6ff')},uCb:{value:new THREE.Color('#c9a0ff')}};
+ const lpos=[],lph=[];E.forEach(([a,b])=>{lpos.push(...P[a],...P[b]);const ph=rnd();lph.push(ph,ph)});
+ const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(lpos,3));lg.setAttribute('ph',new THREE.Float32BufferAttribute(lph,1));
+ NET.add(Object.assign(new THREE.LineSegments(lg,new THREE.ShaderMaterial({...ADD,uniforms:UNET,
+  vertexShader:'uniform float t;attribute float ph;varying float va;varying float vz;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vz=-mv.z;va=.5+.5*sin(t*.6+ph*6.28);gl_Position=projectionMatrix*mv;}',
+  fragmentShader:'uniform float uM;uniform vec3 uCa,uCb;varying float va,vz;void main(){vec3 c=mix(uCa,uCb,uM);float a=(.22+.26*va)*clamp(9./vz,.3,1.);gl_FragColor=vec4(c*a*1.8,a);}'})),{frustumCulled:false}));
+ const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.Float32BufferAttribute(P.flat(),3));pg.setAttribute('ph',new THREE.Float32BufferAttribute(P.map(()=>rnd()),1));
+ NET.add(Object.assign(new THREE.Points(pg,new THREE.ShaderMaterial({...ADD,uniforms:UNET,
+  vertexShader:'uniform float t,px;attribute float ph;varying float va,vz;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vz=-mv.z;va=.35+.65*pow(.5+.5*sin(t*.9+ph*6.28),3.);gl_Position=projectionMatrix*mv;gl_PointSize=(3.+2.5*va)*px*(6./vz);}',
+  fragmentShader:'uniform float uM;uniform vec3 uCa,uCb;varying float va,vz;void main(){vec2 c=gl_PointCoord-.5;float d=length(c)*2.;if(d>1.)discard;vec3 col=mix(uCa,uCb,uM);float a=(smoothstep(.4,0.,d)+exp(-d*d*4.)*.5)*va*1.4*clamp(9./vz,.3,1.);gl_FragColor=vec4(mix(col,vec3(1.),.25)*a,a);}'})),{frustumCulled:false}));
+ // 선 위를 달리는 신호
+ const SN=220,sa=new Float32Array(SN*3),sb=new Float32Array(SN*3),sph=new Float32Array(SN),ssp=new Float32Array(SN);
+ for(let k=0;k<SN;k++){const e=E[Math.floor(rnd()*E.length)];const fl=rnd()<.5;sa.set(P[fl?e[0]:e[1]],k*3);sb.set(P[fl?e[1]:e[0]],k*3);sph[k]=rnd();ssp[k]=.15+rnd()*.35}
+ const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(SN*3),3));sg.setAttribute('sa',new THREE.BufferAttribute(sa,3));sg.setAttribute('sb',new THREE.BufferAttribute(sb,3));sg.setAttribute('ph',new THREE.BufferAttribute(sph,1));sg.setAttribute('sp',new THREE.BufferAttribute(ssp,1));
+ NET.add(Object.assign(new THREE.Points(sg,new THREE.ShaderMaterial({...ADD,uniforms:UNET,
+  vertexShader:'uniform float t,px;attribute vec3 sa,sb;attribute float ph,sp;varying float va,vz;void main(){float u=fract(t*sp+ph);vec3 p=mix(sa,sb,u);vec4 mv=modelViewMatrix*vec4(p,1.);vz=-mv.z;va=sin(3.14159*u);gl_Position=projectionMatrix*mv;gl_PointSize=(5.+3.*va)*px*(6./vz);}',
+  fragmentShader:'uniform float uM;uniform vec3 uCa,uCb;varying float va,vz;void main(){vec2 c=gl_PointCoord-.5;float d=length(c)*2.;if(d>1.)discard;vec3 col=mix(uCa,uCb,uM);float a=(smoothstep(.3,0.,d)+exp(-d*d*4.)*.6)*va*.9*clamp(9./vz,.3,1.);gl_FragColor=vec4(mix(col,vec3(1.),.45)*a,a);}'})),{frustumCulled:false}));
+ window.UNET=UNET;
+}
+/* ---------- 배경 종류 (메뉴로 바꿈) ---------- */
+const BG={groups:{},cur:null};BG.groups.net=NET;
+const BGU={t:{value:0},uM:{value:0},px:{value:PX},res:{value:new THREE.Vector2(1,1)}};
+const NOISE='float hsh(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float vno(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hsh(i),hsh(i+vec2(1,0)),f.x),mix(hsh(i+vec2(0,1)),hsh(i+vec2(1,1)),f.x),f.y);}float fbm(vec2 p){float s=0.,a=.5;for(int k=0;k<5;k++){s+=a*vno(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return s;}';
+const PVS='varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}';
+function bgPlane(frag){const g=new THREE.PlaneGeometry(30,17);const m=new THREE.ShaderMaterial({...ADD,uniforms:BGU,vertexShader:PVS,fragmentShader:NOISE+frag});const mesh=new THREE.Mesh(g,m);mesh.position.z=-5.5;const grp=new THREE.Group();grp.add(mesh);grp.visible=false;scene.add(grp);return grp}
+// 육각격자
+BG.groups.hex=bgPlane('uniform float t,uM;varying vec2 vUv;void main(){vec2 p=(vUv-.5)*vec2(30.,17.)*1.1;vec2 r=vec2(1.,1.732);vec2 h=r*.5;vec2 a=mod(p,r)-h,b=mod(p+h,r)-h;vec2 g=dot(a,a)<dot(b,b)?a:b;vec2 id=p-g;float d=max(abs(g.x)*.866+abs(g.y)*.5,abs(g.y));float line=smoothstep(.5,.46,d)-smoothstep(.46,.40,d);float cell=hsh(floor(id*7.)+floor(t*.5));float lit=step(.965,cell)*(.5+.5*sin(t*3.+cell*40.));float wave=.5+.5*sin(p.x*.25-t*.6+p.y*.1);vec3 ca=vec3(.2,.7,1.),cb=vec3(.7,.5,1.);vec3 c=mix(ca,cb,uM);float v=line*(.32+.3*wave)+lit*.9*smoothstep(.5,.3,d);float vig=smoothstep(1.2,.3,length(vUv-.5)*1.6);gl_FragColor=vec4(c*v*vig*1.8,v*vig);}');
+// 깊은 우주
+BG.groups.space=bgPlane('uniform float t,uM;varying vec2 vUv;void main(){vec2 p=(vUv-.5)*vec2(3.5,2.);float n1=fbm(p*1.3+vec2(t*.012,-t*.007));float n2=fbm(p*2.1-vec2(t*.009,t*.011)+3.1);float n3=fbm(p*.7+n1*1.5);float neb=smoothstep(.42,.85,n3)*.9;vec3 c1=mix(vec3(.05,.35,.75),vec3(.45,.2,.8),uM),c2=mix(vec3(.5,.15,.6),vec3(.9,.5,.3),uM),c3=vec3(.1,.8,.9);vec3 col=c1*neb+c2*smoothstep(.5,.9,n2)*.7+c3*smoothstep(.62,.95,n1)*.4;vec2 sp=p*60.;float st=step(.995,hsh(floor(sp)))*(.4+.6*pow(.5+.5*sin(t*2.+hsh(floor(sp)+1.)*60.),3.));vec2 gf=fract(sp)-.5;st*=smoothstep(.5,.0,length(gf));float vig=smoothstep(1.25,.35,length(vUv-.5)*1.5);col=(col*1.15+vec3(st)*1.2)*vig;gl_FragColor=vec4(col,max(max(col.r,col.g),col.b));}');
+// 등고선
+BG.groups.contour=bgPlane('uniform float t,uM;varying vec2 vUv;void main(){vec2 p=(vUv-.5)*vec2(4.5,2.6);float h=fbm(p*1.1+vec2(t*.02,t*.013))+.35*fbm(p*2.7-vec2(t*.015,0.));float lv=h*14.;float f=fract(lv);float w=.028;float line=1.-smoothstep(0.,w*1.6,min(f,1.-f));float major=mod(floor(lv),5.)<.5?1.:0.;float pulse=.5+.5*sin(h*30.-t*1.4);vec3 ca=vec3(.25,.75,1.),cb=vec3(.8,.55,1.);vec3 c=mix(ca,cb,uM);float v=line*(.16+.2*major+.12*pulse);float vig=smoothstep(1.2,.3,length(vUv-.5)*1.55);gl_FragColor=vec4(c*v*vig*1.8,v*vig);}');
+// 데이터 폭포 (글자 아틀라스 점)
+{const cvs=document.createElement("canvas");cvs.width=cvs.height=512;const g2=cvs.getContext("2d");g2.fillStyle="#000";g2.fillRect(0,0,512,512);g2.fillStyle="#fff";g2.font="bold 46px Consolas,monospace";g2.textAlign="center";g2.textBaseline="middle";
+ const chars="0123456789ABCDEF<>/\\|=+-*#@%&ΣΦΨΩλπ∞√∂∫≈ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎアイウエカキクケコサシスセソタ".split("");for(let i=0;i<64;i++){g2.fillText(chars[i%chars.length],(i%8)*64+32,Math.floor(i/8)*64+32)}
+ const tex=new THREE.CanvasTexture(cvs);tex.minFilter=THREE.LinearFilter;
+ const COLS=60,ROWS=40,n=COLS*ROWS;const pos=new Float32Array(n*3),col=new Float32Array(n),row=new Float32Array(n),sp=new Float32Array(n),ph=new Float32Array(n);
+ for(let c=0;c<COLS;c++){const s=.25+rnd()*.9,p0=rnd();for(let r=0;r<ROWS;r++){const i=c*ROWS+r;col[i]=c;row[i]=r;sp[i]=s;ph[i]=p0}}
+ const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pos,3));g.setAttribute("col",new THREE.BufferAttribute(col,1));g.setAttribute("row",new THREE.BufferAttribute(row,1));g.setAttribute("sp",new THREE.BufferAttribute(sp,1));g.setAttribute("ph",new THREE.BufferAttribute(ph,1));
+ const m=new THREE.ShaderMaterial({...ADD,uniforms:{...BGU,atlas:{value:tex}},
+  vertexShader:'uniform float t,px;attribute float col,row,sp,ph;varying float vG,vA;varying vec3 vc;void main(){float x=(col/60.-.5)*7.4;float head=fract(t*sp*.09+ph)*(40.+14.)-7.;float y=3.6-(head-row)*.165;float back=head-row;vA=back<0.?0.:exp(-back*.09);vG=floor(mod(fract(sin(col*12.9898+row*78.233+floor(t*(2.+fract(ph*7.)*6.)))*43758.5453)*64.,64.));float headG=smoothstep(1.,0.,abs(back));vA=max(vA*.7,headG);vc=mix(vec3(.3,.9,1.),vec3(1.),headG*.8);vec4 mv=modelViewMatrix*vec4(x,y,-5.5,1.);gl_Position=projectionMatrix*mv;gl_PointSize=15.*px;}',
+  fragmentShader:'uniform sampler2D atlas;uniform float uM;varying float vG,vA;varying vec3 vc;void main(){vec2 uv=(vec2(mod(vG,8.),7.-floor(vG/8.))+gl_PointCoord*vec2(1.,-1.)+vec2(0.,1.))/8.;float a=texture2D(atlas,uv).r*vA;vec3 c=mix(vc,mix(vc,vec3(.85,.6,1.),.6),uM);gl_FragColor=vec4(c*1.3,a);}'});
+ const grp=new THREE.Group();const pts=new THREE.Points(g,m);pts.frustumCulled=false;grp.add(pts);grp.visible=false;scene.add(grp);BG.groups.rain=grp}
+BG.groups.none=new THREE.Group();
+function setBG(k){if(!BG.groups[k])k='net';Object.values(BG.groups).forEach(g=>g.visible=false);BG.cur=k;try{localStorage.setItem('brainBg',k)}catch(e){}const s=$('bgSel');if(s.value!==k)s.value=k}
+$('bgSel').onchange=e=>setBG(e.target.value);
+setBG((()=>{try{return localStorage.getItem('brainBg')||CFG.background}catch(e){return CFG.background}})());
+// 별가루
+{const n=1800,pos=new Float32Array(n*3);for(let i=0;i<n;i++){const r=2.2+rnd()*3.4,th=rnd()*6.283,ph=Math.acos(2*rnd()-1);pos.set([r*Math.sin(ph)*Math.cos(th),r*Math.cos(ph)*.75,r*Math.sin(ph)*Math.sin(th)],i*3)}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));window.dust=new THREE.Points(g,new THREE.ShaderMaterial({...ADD,uniforms:UNI,vertexShader:'uniform float px;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;gl_PointSize=2.*px*(4.4/-mv.z);}',fragmentShader:'void main(){vec2 c=gl_PointCoord-.5;float d=length(c)*2.;if(d>1.)discard;gl_FragColor=vec4(.55,.8,1.,.3*(1.-d));}'}));scene.add(window.dust)}
+
+/* ---------- 화면 요소 ---------- */
+const cams={m:new THREE.PerspectiveCamera(30,1,.1,60),A:new THREE.PerspectiveCamera(20,1,.1,60),C:new THREE.PerspectiveCamera(20,1,.1,60),S:new THREE.PerspectiveCamera(20,1,.1,60)};
+const order=N.map((n,i)=>i).sort((a,b)=>N[b][5].localeCompare(N[a][5])||N[b][2]-N[a][2]);
+const actList=order.filter(i=>adj[i].length>=2).slice(0,14);let actIdx=actList[0],lastAct=-1,pinned=-1e9;
+function setCard(i){const n=N[i],r=R[n[1]];$('card').innerHTML=`<div class="h">${esc(n[0])}</div><dl><dt>그룹</dt><dd style="color:${r.col}">${r.ko} · ${r.key}</dd><dt>세계수</dt><dd>${r.tree||'가지 branch'}</dd><dt>상태</dt><dd>${esc(n[4]||'-')}</dd><dt>연결</dt><dd>직접 ${adj[i].length} / 전체 ${n[2]}</dd><dt>만든 날</dt><dd>${n[5]}</dd></dl>`;if(window.__ready)drawEgo()}
+const labs=$('labs');const labEls=R.map(r=>{const e=document.createElement('div');e.className='lab';e.innerHTML=`<b style="color:${r.col}">${r.key}</b><span>${r.ko}</span>`;labs.appendChild(e);return e});
+const anchB=R.map((r,k)=>{let best=-1,bs=-1e9,pt=null;const d=r.dir;for(const[p,i]of cand[k]){const P=p.geo.attributes.position;const s=P.getX(i)*d[0]+P.getY(i)*d[1]+P.getZ(i)*d[2];if(s>bs){bs=s;best=i;pt=p}}const P=pt.geo.attributes.position;return V3(P.getX(best),P.getY(best),P.getZ(best))});
+let morphT=0;const setMode=m=>{morphT=m;$('tB').classList.toggle('on',m===0);$('tT').classList.toggle('on',m===1)};$('tB').onclick=()=>setMode(0);$('tT').onclick=()=>setMode(1);addEventListener('keydown',e=>{if(e.key==='t'||e.key==='T')setMode(1-morphT)});
+setInterval(()=>{$('clk').textContent=new Date().toLocaleString('ko-KR')},1000);
+
+/* ---------- 아래 패널: 실제 내용 + 수학 도형 ---------- */
+const AXC='rgba(127,208,255,.5)',GRID='rgba(127,208,255,.13)',TX='#9db8cc';
+function ctx(id,hh){const c=$(id),p=c.parentElement;const w=p.clientWidth-16,h=hh;c.width=w*PX;c.height=h*PX;c.style.width=w+'px';c.style.height=h+'px';const g=c.getContext('2d');g.scale(PX,PX);g.clearRect(0,0,w,h);return{g,w,h}}
+const GH=92;
+const dayCnt=days.map(d=>R.map(()=>0));N.forEach(n=>{const k=days.indexOf(n[5]);if(k>=0)dayCnt[k][n[1]]++});
+const dayTot=dayCnt.map(r=>r.reduce((a,b)=>a+b,0));
+const regCnt=R.map(()=>0);N.forEach(n=>regCnt[n[1]]++);
+const row=(i,right)=>'<div class="rw"><span class="cd" style="background:'+R[N[i][1]].col+'">'+R[N[i][1]].code+'</span><span class="ti">'+esc(N[i][0])+'</span><em>'+(right||'')+'</em></div>';
+const Cm=R.map(()=>R.map(()=>0));B.edges.forEach(([a,b])=>{const i=N[a][1],j=N[b][1];Cm[i][j]++;if(i!==j)Cm[j][i]++});
+// 그래프 이론 값
+const nV=N.length,mE=B.edges.length;const uf=N.map((_,i)=>i);const fd=x=>{while(uf[x]!==x){uf[x]=uf[uf[x]];x=uf[x]}return x};B.edges.forEach(([a,b])=>{uf[fd(a)]=fd(b)});const csz=new Map();N.forEach((_,i)=>{const r=fd(i);csz.set(r,(csz.get(r)||0)+1)});const comps=csz.size,giant=Math.max(...csz.values());
+function fillLists(){
+ $('l1').innerHTML=order.slice(0,11).map(i=>row(i,N[i][5].slice(5))).join('');
+ const pk=dayTot.indexOf(Math.max(...dayTot));const rows=[pk];for(let k=days.length-1;rows.length<5&&k>=0;k--)if(!rows.includes(k))rows.push(k);
+ $('l3').innerHTML=rows.map((k,ix)=>'<div class="rw'+(k===pk?' hot':'')+'"><span class="cd" style="background:#7fd0ff">'+(k===pk?'최대':'일')+'</span><span class="ti">'+days[k].slice(5)+(k===pk?'  하루에 가장 많이 생긴 날':'')+'</span><em>'+dayTot[k].toLocaleString()+'개</em></div>').join('');
+ $('l5').innerHTML=R.map((r,i)=>'<div class="rw"><span class="cd" style="background:'+r.col+'">'+r.code+'</span><span class="ti">'+r.ko+'<small>'+(r.tree||'')+'</small></span><em>'+regCnt[i].toLocaleString()+'<b>+'+recentCnt[i]+'</b></em></div>').join('');
+ const pairs=[];for(let i=0;i<6;i++)for(let j=i;j<6;j++)if(Cm[i][j])pairs.push([i,j,Cm[i][j]]);pairs.sort((a,b)=>b[2]-a[2]);
+ $('l4').innerHTML=pairs.slice(0,6).map(([i,j,v])=>'<div class="rw"><span class="cd" style="background:'+R[i].col+'">'+R[i].code+'</span><span class="ti">'+(i===j?'같은 영역 안':'↔ '+R[j].ko)+'</span><em>'+v.toLocaleString()+'</em></div>').join('');
+ $('eqL').innerHTML='|V| = '+nV.toLocaleString()+' &nbsp; |E| = '+mE.toLocaleString()+' &nbsp; ⟨k⟩ = '+(2*mE/nV).toFixed(2)+'<br>C = '+comps.toLocaleString()+' &nbsp; φ = 1.618… &nbsp; θ = 137.5°';
+}
+let tp0=0;const tailIdx=order.slice(0,80);
+function drawTail(){const o=[];for(let k=0;k<10;k++){const i=tailIdx[(tp0+k)%tailIdx.length];o.push(row(i,N[i][5].slice(5)))}$('l6').innerHTML=o.join('')}
+setInterval(()=>{tp0=(tp0+1)%tailIdx.length;drawTail()},1500);
+// 연결된 문서: 실제 이웃 목록 + 그래프 이론(연결망) 도형
+function drawEgo(){
+ const {g,w,h}=ctx('c2',GH);const nb=adj[actIdx].slice(0,7);const cx=w/2,cy=h/2,rad=Math.min(w,h)*.38;
+ g.strokeStyle=GRID;g.beginPath();g.arc(cx,cy,rad,0,6.3);g.stroke();g.beginPath();g.arc(cx,cy,rad*.5,0,6.3);g.stroke();
+ const col=R[N[actIdx][1]].col;
+ nb.forEach((j,k)=>{const a=-Math.PI/2+k*Math.PI*2/Math.max(nb.length,1);const x=cx+Math.cos(a)*rad*1.55,y=cy+Math.sin(a)*rad;g.strokeStyle='rgba(127,208,255,.7)';g.lineWidth=1.2;g.beginPath();g.moveTo(cx,cy);g.lineTo(x,y);g.stroke();g.fillStyle=R[N[j][1]].col;g.beginPath();g.arc(x,y,4.2,0,6.3);g.fill()});
+ g.fillStyle=col;g.shadowColor=col;g.shadowBlur=12;g.beginPath();g.arc(cx,cy,6,0,6.3);g.fill();g.shadowBlur=0;g.strokeStyle='#fff';g.lineWidth=1.4;g.beginPath();g.arc(cx,cy,9,0,6.3);g.stroke();
+ g.fillStyle=TX;g.font='italic 10px Cambria Math,serif';g.fillText('deg(v) = '+adj[actIdx].length,4,12);
+ $('l2c').textContent='연결된 문서 '+adj[actIdx].length+'개';
+ $('l2').innerHTML='<div class="rw hot"><span class="cd" style="background:'+col+'">지금</span><span class="ti">'+esc(N[actIdx][0])+'</span></div>'+(nb.length?nb.slice(0,3).map(j=>row(j,N[j][2])).join(''):'<div class="rw"><span class="ti" style="color:#6f8da6">그려진 연결 없음 (색인 노트에만 연결되었거나 혼자인 노트)</span></div>');
+}
+function drawAll(){
+ fillLists();drawTail();
+ // f(x)
+ {const{g,w,h}=ctx('c3',GH);const L=22,T=6,Bm=14;const v=dayTot.map(Math.sqrt);const mx=Math.max(...v)*1.1;const X=k=>L+(w-L-6)*k/(days.length-1),Y=y=>T+(h-T-Bm)*(1-y/mx);
+  g.strokeStyle=GRID;g.lineWidth=1;for(let k=0;k<=3;k++){const y=T+(h-T-Bm)*k/3;g.beginPath();g.moveTo(L,y);g.lineTo(w-6,y);g.stroke()}
+  g.strokeStyle=AXC;g.beginPath();g.moveTo(L,T-2);g.lineTo(L,h-Bm);g.lineTo(w-4,h-Bm);g.stroke();g.fillStyle=TX;g.font='9px Consolas';const lbStep=Math.max(1,Math.ceil(days.length/12));days.forEach((d,k)=>{if(k%lbStep===0)g.fillText(d.slice(8),X(k)-5,h-3)});
+  const pts=v.map((y,k)=>[X(k),Y(y)]);g.beginPath();g.moveTo(...pts[0]);for(let k=0;k<pts.length-1;k++){const p0=pts[Math.max(0,k-1)],p1=pts[k],p2=pts[k+1],p3=pts[Math.min(pts.length-1,k+2)];g.bezierCurveTo(p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6,p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6,p2[0],p2[1])}
+  const lg=g.createLinearGradient(L,0,w,0);lg.addColorStop(0,'#4fd6ff');lg.addColorStop(.6,'#a98bff');lg.addColorStop(1,'#ffb04d');g.strokeStyle=lg;g.lineWidth=2;g.shadowColor='#7fd0ff';g.shadowBlur=8;g.stroke();g.shadowBlur=0;g.fillStyle='#fff';pts.forEach(p=>g.fillRect(p[0]-2,p[1]-2,4,4));
+  g.fillStyle=TX;g.font='italic 10px Cambria Math,serif';g.fillText('y = √n(x)',L+6,T+9)}
+ // 화음도
+ {const{g,w,h}=ctx('c4',GH);const cx=w/2,cy=h/2,rad=Math.min(w,h)/2-5;const tot=R.map((_,i)=>Cm[i].reduce((s,v,j)=>s+v+(j===i?v:0),0)+6);const sum=tot.reduce((a,b)=>a+b,0);const gap=.09;const start=[],span=[];let a0=-Math.PI/2;R.forEach((_,i)=>{span.push((tot[i]/sum)*(Math.PI*2-gap*6));start.push(a0);a0+=span[i]+gap});
+  const cur=start.slice();const pos=(i,cnt)=>{const r=cur[i];cur[i]+=span[i]*cnt/tot[i];return(r+cur[i])/2};
+  g.lineWidth=4;R.forEach((r,i)=>{g.strokeStyle=r.col;g.beginPath();g.arc(cx,cy,rad,start[i],start[i]+span[i]);g.stroke()});
+  const r2=rad-8;for(let i=0;i<6;i++)for(let j=i;j<6;j++){const v=Cm[i][j];if(!v)continue;const ai=pos(i,v),aj=pos(j,v);const x1=cx+Math.cos(ai)*r2,y1=cy+Math.sin(ai)*r2,x2=cx+Math.cos(aj)*r2,y2=cy+Math.sin(aj)*r2;const gr=g.createLinearGradient(x1,y1,x2,y2);gr.addColorStop(0,R[i].col);gr.addColorStop(1,R[j].col);g.globalAlpha=.6;g.strokeStyle=gr;g.lineWidth=Math.max(1,Math.min(6,v/50));g.beginPath();g.moveTo(x1,y1);g.quadraticCurveTo(cx,cy,x2,y2);g.stroke();g.globalAlpha=1}}
+ // 레이더
+ {const{g,w,h}=ctx('c5',GH);const cx=w/2,cy=h/2+1,rad=Math.min(w,h)/2-13;const lv=regCnt.map(c=>Math.log10(c+1));const mx=Math.max(...lv);const ang=i=>-Math.PI/2+i*Math.PI*2/6;
+  g.strokeStyle=GRID;for(let k=1;k<=4;k++){g.beginPath();for(let i=0;i<=6;i++){const a=ang(i),r=rad*k/4;i?g.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r):g.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r)}g.stroke()}
+  for(let i=0;i<6;i++){g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+Math.cos(ang(i))*rad,cy+Math.sin(ang(i))*rad);g.stroke()}
+  const poly=(vals,fill,stroke)=>{g.beginPath();vals.forEach((v,i)=>{const a=ang(i),r=rad*v;i?g.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r):g.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r)});g.closePath();g.fillStyle=fill;g.fill();g.strokeStyle=stroke;g.lineWidth=1.5;g.stroke()};
+  poly(lv.map(v=>v/mx),'rgba(79,214,255,.2)','#4fd6ff');const rm=Math.max(...recentCnt,1);poly(recentCnt.map(v=>Math.sqrt(v/rm)*.9),'rgba(255,176,77,.18)','#ffb04d');
+  g.font='9px Consolas';g.textAlign='center';R.forEach((r,i)=>{const a=ang(i);g.fillStyle=r.col;g.fillText(r.code,cx+Math.cos(a)*(rad+8),cy+Math.sin(a)*(rad+8)+3)});g.textAlign='left'}
+ drawEgo();
+}
+/* ---------- 루프 ---------- */
+let yaw=-.45,pitch=.1,dist=5.6,drag=false,lx=0,ly=0,lastTouch=-1e9,hover=-1;const mouse={x:-9,y:-9,mv:false};let hovF=0;const mainV=$('mainV');
+mainV.addEventListener('pointerdown',e=>{drag=true;lastTouch=performance.now();lx=e.clientX;ly=e.clientY});addEventListener('pointerup',()=>{drag=false;lastTouch=performance.now()});
+addEventListener('pointermove',e=>{mouse.mv=true;if(drag){yaw+=(e.clientX-lx)*.006;pitch=Math.max(-.8,Math.min(.8,pitch+(e.clientY-ly)*.006));lx=e.clientX;ly=e.clientY}mouse.x=e.clientX;mouse.y=e.clientY});
+mainV.addEventListener('wheel',e=>{dist=Math.max(2.4,Math.min(8,dist*(1+e.deltaY*.001)))},{passive:true});mainV.addEventListener('click',()=>{if(hover>=0){actIdx=hover;pinned=performance.now()}});
+function resize(){renderer.setSize(innerWidth,innerHeight,false);setTimeout(()=>{drawAll();window.__ready=true},30)}addEventListener('resize',resize);resize();
+const tip=$('tip'),ring=$('ring'),svg=$('svg');const v3=new THREE.Vector3();let prev=performance.now();const actSm=R.map(()=>.3);
+const AX=[V3(0,1,0),V3(1,0,0),V3(0,0,1)];
+const lerp3=(i)=>{const m=UNI.uMorph.value;return[NP[i*3]*(1-m)+NP2[i*3]*m,NP[i*3+1]*(1-m)+NP2[i*3+1]*m,NP[i*3+2]*(1-m)+NP2[i*3+2]*m]};
+function vp(rect,H){const y=H-rect.bottom;renderer.setViewport(rect.left,y,rect.width,rect.height);renderer.setScissor(rect.left,y,rect.width,rect.height);renderer.setClearColor(0x000000,0);renderer.clear()}
+/* ---------- 빛 번짐(블룸): 메인 화면만 ---------- */
+const BL={};
+const qGeo=new THREE.PlaneGeometry(2,2),qCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1),qScene=new THREE.Scene();const qMesh=new THREE.Mesh(qGeo);qScene.add(qMesh);
+const VS='varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position,1.);}';
+const matCopy=new THREE.ShaderMaterial({uniforms:{tex:{value:null}},vertexShader:VS,fragmentShader:'uniform sampler2D tex;varying vec2 vUv;void main(){gl_FragColor=texture2D(tex,vUv);}',depthTest:false,depthWrite:false});
+const matBlur=new THREE.ShaderMaterial({uniforms:{tex:{value:null},dir:{value:new THREE.Vector2()}},vertexShader:VS,fragmentShader:'uniform sampler2D tex;uniform vec2 dir;varying vec2 vUv;void main(){vec4 s=texture2D(tex,vUv)*.227;s+=(texture2D(tex,vUv+dir*1.3846)+texture2D(tex,vUv-dir*1.3846))*.3162;s+=(texture2D(tex,vUv+dir*3.2308)+texture2D(tex,vUv-dir*3.2308))*.0702;gl_FragColor=s;}',depthTest:false,depthWrite:false});
+const matComp=new THREE.ShaderMaterial({uniforms:{base:{value:null},b1:{value:null},b2:{value:null},str:{value:1}},vertexShader:VS,fragmentShader:'uniform sampler2D base,b1,b2;uniform float str;varying vec2 vUv;void main(){vec4 a=texture2D(base,vUv);vec4 g=texture2D(b1,vUv)*.55+texture2D(b2,vUv)*.75;vec3 c=a.rgb+g.rgb*str;float al=clamp(max(a.a,max(g.a*str*.6,max(c.r,max(c.g,c.b)))),0.,1.);gl_FragColor=vec4(c,al);}',depthTest:false,depthWrite:false,transparent:true,premultipliedAlpha:true,blending:THREE.AdditiveBlending});
+function ensureRT(w,h){if(BL.w===w&&BL.h===h)return;BL.w=w;BL.h=h;['a','b','c','d','e'].forEach(k=>BL[k]&&BL[k].dispose());const o={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat};BL.a=new THREE.WebGLRenderTarget(w,h,o);const w2=Math.max(1,w>>2),h2=Math.max(1,h>>2);BL.b=new THREE.WebGLRenderTarget(w2,h2,o);BL.c=new THREE.WebGLRenderTarget(w2,h2,o);const w3=Math.max(1,w>>3),h3=Math.max(1,h>>3);BL.d=new THREE.WebGLRenderTarget(w3,h3,o);BL.e=new THREE.WebGLRenderTarget(w3,h3,o);BL.s=[w2,h2,w3,h3]}
+function pass(mat,target){qMesh.material=mat;renderer.setRenderTarget(target);renderer.clear();renderer.render(qScene,qCam)}
+function blurInto(src,tmp,dst,w,h,rad){matBlur.uniforms.tex.value=src.texture;matBlur.uniforms.dir.value.set(rad/w,0);pass(matBlur,tmp);matBlur.uniforms.tex.value=tmp.texture;matBlur.uniforms.dir.value.set(0,rad/h);pass(matBlur,dst)}
+function renderBloom(cam,mr,Hh){const w=Math.max(2,Math.floor(mr.width*PX)),h=Math.max(2,Math.floor(mr.height*PX));ensureRT(w,h);
+ renderer.setClearColor(0,0);renderer.setRenderTarget(BL.a);renderer.clear();renderer.render(scene,cam);
+ const[w2,h2,w3,h3]=BL.s;matCopy.uniforms.tex.value=BL.a.texture;pass(matCopy,BL.b);blurInto(BL.b,BL.c,BL.b,w2,h2,CFG.bloom.radius);blurInto(BL.b,BL.c,BL.b,w2,h2,CFG.bloom.radius*1.6);
+ matCopy.uniforms.tex.value=BL.b.texture;pass(matCopy,BL.d);blurInto(BL.d,BL.e,BL.d,w3,h3,CFG.bloom.radius*1.4);blurInto(BL.d,BL.e,BL.d,w3,h3,CFG.bloom.radius*2.2);
+ renderer.setRenderTarget(null);vp(mr,Hh);matComp.uniforms.base.value=BL.a.texture;matComp.uniforms.b1.value=BL.b.texture;matComp.uniforms.b2.value=BL.d.texture;matComp.uniforms.str.value=CFG.bloom.strength;qMesh.material=matComp;renderer.render(qScene,qCam)}
+function frame(now){
+ const dt=Math.min(.05,(now-prev)/1000);prev=now;const t=now/1000;UNI.t.value=t;
+ UNI.uMorph.value+=(morphT-UNI.uMorph.value)*Math.min(1,dt*1.8);const m=UNI.uMorph.value;
+ if(!drag&&now-lastTouch>3500)yaw+=CFG.rotateSpeed*dt;
+ if(now-pinned>9000){actIdx=actList[Math.floor(now/4200)%actList.length]}if(actIdx!==lastAct){setCard(actIdx);lastAct=actIdx}
+ const ar=N[actIdx][1];const mx=Math.max(...recentCnt,1);R.forEach((r,i)=>{const tg=.28+.5*(recentCnt[i]/mx)+(i===ar?.35:0);actSm[i]+=(tg-actSm[i])*.04;UA[i]=actSm[i]*(.9+.1*Math.sin(t*1.7+i))});UNI.uA.value=UA.slice();
+ const W=innerWidth,H=innerHeight,mr=mainV.getBoundingClientRect();
+ // 메인
+ vp(mr,H);const c=cams.m;c.aspect=mr.width/mr.height;c.updateProjectionMatrix();c.position.set(0,.1,dist+m*3.1);c.lookAt(0,-.3*m,0);
+ root.position.y=-.04-m*.0;root.rotation.set(pitch,yaw,0);root.updateMatrixWorld();
+ {const g=BG.groups[BG.cur];g.visible=true;if(BG.cur==='net'){NET.rotation.set(pitch*.12,yaw*.18+t*.004,0);NET.position.set(0,-.3*m,-3.2)}else{g.position.set(-yaw*.25,-pitch*.2-.3*m,0)}UNET.t.value=t;UNET.uM.value=m;BGU.t.value=t;BGU.uM.value=m;}
+ UNI.uSm.value=1;UNI.uSa.value.copy(AX[0]);UNI.uSc.value=-.5+1.6*(.5+.5*Math.sin(t*.4));UNI.uSt.value=.05;UNI.uK.value=Math.max(.7,Math.min(1.4,mr.height/520));
+ renderBloom(c,mr,H);
+ // 이름표
+ const cen=V3(0,-.3*m,0).applyMatrix4(root.matrixWorld).project(c);const cx0=(cen.x*.5+.5)*mr.width,cy0=(-cen.y*.5+.5)*mr.height;let s='';
+ R.forEach((r,k)=>{const p=anchB[k].clone().lerp(tipC[k],m);v3.copy(p).applyMatrix4(root.matrixWorld).project(c);const sx=(v3.x*.5+.5)*mr.width,sy=(-v3.y*.5+.5)*mr.height;let dx=sx-cx0,dy=sy-cy0;const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;const ex=sx+dx*60,ey=sy+dy*44;const e=labEls[k];e.style.left=(ex+(dx<0?-e.offsetWidth-5:5))+'px';e.style.top=(ey-14)+'px';
+  s+=`<circle cx="${sx}" cy="${sy}" r="2.6" fill="${r.col}"/><polyline points="${sx},${sy} ${ex},${ey} ${ex+(dx<0?-4:4)},${ey}" stroke="${r.col}" stroke-opacity=".75" fill="none"/>`;
+  e.querySelector('span').textContent=m>.5&&r.tree?r.ko+' · '+r.tree:r.ko});svg.innerHTML=s;
+ {const p=lerp3(actIdx);v3.set(p[0],p[1],p[2]).applyMatrix4(root.matrixWorld).project(c);ring.style.left=(mr.left+(v3.x*.5+.5)*mr.width)+'px';ring.style.top=(mr.top+(-v3.y*.5+.5)*mr.height)+'px'}
+ $('cam').textContent=`cam az ${((yaw*57.3)%360).toFixed(1)}° el ${(pitch*57.3).toFixed(1)}° · mode ${m<.5?'brain':'world-tree'} · morph ${m.toFixed(2)}`;
+ $('pts').textContent=`nodes ${N.length.toLocaleString()} · tracts ${B.edges.length.toLocaleString()} · scan y=${UNI.uSc.value.toFixed(2)}`;
+ $('mCap').textContent=m<.5?'/skull/brain · 6 regions · ct sweep':'/world-tree · trunk='+R[5].ko+' · roots='+R[4].ko+' · branches='+R.slice(0,4).map(r=>r.ko).join(' · ');
+ // 호버
+ if(!drag&&(mouse.mv||(++hovF%20===0))){mouse.mv=false;let best=-1,bd=64;for(let i=0;i<N.length;i++){const p=lerp3(i);v3.set(p[0],p[1],p[2]).applyMatrix4(root.matrixWorld).project(c);const sx=mr.left+(v3.x*.5+.5)*mr.width,sy=mr.top+(-v3.y*.5+.5)*mr.height;const d=(sx-mouse.x)*(sx-mouse.x)+(sy-mouse.y)*(sy-mouse.y);if(d<bd){bd=d;best=i}}
+  hover=best;if(best>=0&&mouse.x>mr.left&&mouse.x<mr.right){const x=N[best];tip.style.display='block';tip.style.left=(mouse.x+14)+'px';tip.style.top=(mouse.y+14)+'px';tip.innerHTML=esc(x[0])+`<small style="color:${R[x[1]].col}">${R[x[1]].ko} · ${esc(x[4]||'-')} · 연결 ${x[2]}</small>`}else tip.style.display='none'}
+ // 단면
+ BG.groups[BG.cur].visible=false;root.rotation.set(0,0,0);root.updateMatrixWorld();UNI.uSm.value=2;UNI.uK.value=1.4;UNI.uSt.value=.085;
+ [['sA','A',[0,6.4,0],[1,0,0],0,-.4,.9,'y'],['sC','C',[6.4,0,0],[0,1,0],1,-1,1,'x'],['sS','S',[0,0,6.4],[0,1,0],2,-.5,.5,'z']].forEach(([id,k,pos,up,ax,lo,hi,nm],ii)=>{const el=$(id),rc=el.querySelector('.v').getBoundingClientRect();vp(rc,H);const cc=cams[k];cc.aspect=rc.width/rc.height;cc.up.set(...up);cc.position.set(pos[0]*(1+m*.55),pos[1]*(1+m*.55),pos[2]*(1+m*.55));cc.lookAt(0,-.3*m,0);cc.updateProjectionMatrix();UNI.uSa.value.copy(AX[ax]);const sc=lo+(hi-lo)*(.5+.5*Math.sin(t*.33+ii*1.9));UNI.uSc.value=sc;renderer.render(scene,cc);el.querySelector('.r').textContent=`${nm} ${sc>=0?'+':''}${sc.toFixed(2)}`;el.querySelector('.f').textContent=m<.5?'skull · cortex · ventricles':'trunk · branches · roots'});
+ requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+$('ttl').textContent=B.stat.title||'Knowledge Brain';
+$('dataInfo').textContent=N.length.toLocaleString()+' notes · '+(B.stat.edges||0).toLocaleString()+' links'+(B.stat.hiddenTitles?' · titles hidden':'')+' · built '+String(B.stat.built||'').slice(0,10);
+</script>
+</body>
+</html>

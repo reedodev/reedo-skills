@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>배너 1280x400 템플릿</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  /* render: node scripts/render.mjs templates/banner.html banner.png --size 1280x400 --scale 2 */
+  :root { --ink: #0b0b0f; --mute: #3b3f4a; --accent: #2547F4; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1280px; height: 400px; background: #fff; overflow: hidden;
+    font-family: Pretendard, "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; color: var(--ink); }
+  .frame { position: absolute; inset: 14px; border: 6px solid var(--ink); }
+  .top { position: absolute; left: 58px; right: 58px; top: 44px; display: flex; justify-content: space-between; font-weight: 700; font-size: 22px; }
+  .rule { position: absolute; left: 58px; right: 58px; top: 84px; height: 4px; background: var(--ink); }
+  h1 { position: absolute; left: 58px; top: 116px; margin: 0; font-size: 64px; line-height: 1.12; font-weight: 800; letter-spacing: -2px; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .sub { position: absolute; left: 60px; top: 286px; font-size: 24px; font-weight: 600; color: var(--mute); }
+  .badge { position: absolute; right: 70px; top: 118px; width: 220px; height: 220px; border-radius: 50%;
+    border: 8px solid var(--accent); display: grid; place-items: center; text-align: center;
+    font-size: 30px; font-weight: 800; line-height: 1.25; }
+</style>
+</head>
+<body>
+  <div class="frame"></div>
+  <div class="top"><span>프로젝트 이름</span><span>github.com/your-name</span></div>
+  <div class="rule"></div>
+  <h1>한 줄로 말하는<br><em>핵심 약속</em>을 적습니다</h1>
+  <div class="sub">누구를 위한 무엇인지 한 줄 설명</div>
+  <div class="badge">사진이나<br>로고 자리</div>
+</body>
+</html>

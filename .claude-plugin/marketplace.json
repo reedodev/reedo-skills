@@ -4,13 +4,13 @@
     "name": "Reedo"
   },
   "metadata": {
-    "description": "Korean creator & automation skills for Claude Code, tested in daily use",
-    "version": "1.0.0"
+    "description": "Korean creator, automation and personal-knowledge skills for Claude Code, tested in daily use",
+    "version": "1.1.0"
   },
   "plugins": [
     {
       "name": "korean-creator-skills",
-      "description": "Korean tone check, Naver golden keywords, HWPX form filling, TTS tail fix, and work-log-to-lecture-deck",
+      "description": "Korean tone check, Naver golden keywords, HWPX forms, TTS tail fix, card/banner renderer, social video aspect gate, YouTube publish checklist",
       "source": "./",
       "strict": false,
       "skills": [
@@ -18,6 +18,19 @@
         "./skills/naver-golden-keywords",
         "./skills/hwpx-form-fill",
         "./skills/tts-tail-fix",
+        "./skills/html-card-render",
+        "./skills/social-video-gate",
+        "./skills/youtube-publish-checklist"
+      ]
+    },
+    {
+      "name": "knowledge-skills",
+      "description": "Recall past lessons from an Obsidian vault, see it as a 3D x-ray brain / world tree, and turn work logs into lecture decks",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/vault-recall",
+        "./skills/obsidian-brain-3d",
         "./skills/work-to-lecture-deck"
       ]
     }

@@ -80,6 +80,8 @@ lines.forEach((raw, li) => {
   if (!line || /^(#|>|\||!\[|---|\* \* \*)/.test(line)) return;          // heading, quote, table, image
   if (/^(#[^\s#]+\s*)+$/.test(line)) return;                              // hashtag line
   line = line.replace(/^([-*+]|\d+[.)])\s+/, '');                          // list marker
+  for (let k = 0; k < 2; k++) line = line.replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1'); // nested badge links
+  line = line.replace(/https?:\/\/\S+/g, '').replace(/<[^>]+>/g, ''); // links, URLs, HTML
   line = line.replace(/`[^`]*`/g, '').replace(/"[^"]*"|“[^”]*”|「[^」]*」/g, '“”'); // code + quotes
   // split after . ! ? … but not inside numbers like 0.2 or 1.5
   const parts = line.split(/(?<=[.!?…])(?!\d)\s*/);
@@ -102,7 +104,7 @@ for (const { line, s } of sentences) {
 // rhythm: 3+ consecutive short sentences (< 14 chars) / repeated openers
 let run = [];
 const flush = () => { if (run.length >= 3) issues.push({ type: 'rhythm', line: run[0].line, why: `짧은 문장 ${run.length}개 연속: 연결어미로 이유와 결과를 이어 보세요`, text: run.map(r => r.s).join(' ').slice(0, 70) }); run = []; };
-for (const x of sentences) { if (x.s.replace(/\s/g, '').length < 14) run.push(x); else flush(); }
+for (const x of sentences) { if (/[가-힣]/.test(x.s) && x.s.replace(/\s/g, '').length < 14) run.push(x); else flush(); }
 flush();
 const opener = {};
 for (const { line, s } of sentences) { const w = s.split(/\s+/)[0]; if (w.length >= 2) (opener[w] ||= []).push(line); }

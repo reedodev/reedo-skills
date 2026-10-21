@@ -2,10 +2,11 @@
 
 # Reedo Skills
 
-이 저장소는 **목록**입니다. 스킬 11개는 각각 따로 된 저장소에 있고, 필요한 것만 골라서 설치하면 됩니다. 저장소마다 설명서, 예시 파일, 자동 시험(GitHub Actions)이 들어 있습니다.
+이 저장소는 **목록**입니다. 스킬 12개는 각각 따로 된 저장소에 있고, 필요한 것만 골라서 설치하면 됩니다. 저장소마다 설명서, 예시 파일, 자동 시험(GitHub Actions)이 들어 있습니다.
 
 | 스킬 | 한 줄 소개 | 저장소 |
 |---|---|---|
+| [**설명 영상 만들기**](https://github.com/reedodev/explainer-studio) | 한 줄 주제가 손으로 그린 8가지 스타일의 설명 영상이 됩니다 | `reedodev/explainer-studio` |
 | [**옵시디언 LLM 위키**](https://github.com/reedodev/obsidian-llm-wiki) | AI가 정리하고 이어 주는 나만의 지식 저장고 | `reedodev/obsidian-llm-wiki` |
 | [**옵시디언 3D 지식그래프**](https://github.com/reedodev/obsidian-brain-3d) | 내 노트가 엑스레이 뇌와 세계수로 보입니다 | `reedodev/obsidian-brain-3d` |
 | [**노트 먼저 찾아보기**](https://github.com/reedodev/vault-recall) | 같은 실수, 내 노트가 먼저 막아 줍니다 | `reedodev/vault-recall` |
@@ -35,8 +36,9 @@
 
 ## English
 
-This repository is an index. Each of the eleven Claude Code skills lives in its own repository with its own README, examples and CI.
+This repository is an index. Each of the twelve Claude Code skills lives in its own repository with its own README, examples and CI.
 
+- [explainer-studio](https://github.com/reedodev/explainer-studio): One line in, a narrated or captioned explainer video out, in eight hand-drawn styles (whiteboard, blueprint, ink-wash, spy titles and more), with a gentle camera, sources file and MP4 plus SRT.
 - [obsidian-llm-wiki](https://github.com/reedodev/obsidian-llm-wiki): Set up an Obsidian vault as a Karpathy-style LLM Wiki: inbox, sources, wiki, outputs, a rules file every AI reads first, templates and an index, plus scripts to rebuild the index and health-check links, front matter and recheck dates.
 - [obsidian-brain-3d](https://github.com/reedodev/obsidian-brain-3d): Render an Obsidian vault as points inside an x-ray brain and skull, switch to a world-tree layout with T, and see real note titles, dates and link counts. Optional title/group hiding for public sharing.
 - [vault-recall](https://github.com/reedodev/vault-recall): Before a task, recall relevant past lessons from an Obsidian/markdown vault: Korean-aware bigram search, status and recency weighting, cached index (8k notes in under a second after the first run).

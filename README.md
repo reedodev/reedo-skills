@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/banner.png" alt="Reedo Skills: 매일 쓰면서 고친 한국어 AI 에이전트 스킬 12개" width="100%"></p>
+<p align="center"><img src="docs/banner.png" alt="Reedo Skills: 매일 쓰면서 고친 한국어 AI 에이전트 스킬 13개" width="100%"></p>
 
 # Reedo Skills
 

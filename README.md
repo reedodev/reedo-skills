@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/banner.png" alt="Reedo Skills: 매일 쓰면서 고친 한국어 AI 에이전트 스킬 14개" width="100%"></p>
+<p align="center"><img src="docs/banner.png" alt="Reedo Skills: 매일 쓰면서 고친 한국어 AI 에이전트 스킬 15개" width="100%"></p>
 
 # Reedo Skills
 
@@ -6,7 +6,7 @@
 
 ## 한국어
 
-이 저장소는 **목록**입니다. 스킬 14개는 각각 따로 된 저장소에 있고, 필요한 것만 골라서 설치하면 됩니다. 저장소마다 설명서, 예시 파일, 자동 시험(GitHub Actions)이 들어 있습니다.
+이 저장소는 **목록**입니다. 스킬 15개는 각각 따로 된 저장소에 있고, 필요한 것만 골라서 설치하면 됩니다. 저장소마다 설명서, 예시 파일, 자동 시험(GitHub Actions)이 들어 있습니다.
 
 ### 처음 오셨나요? 3분 안내
 
@@ -36,6 +36,7 @@
 |---|---|---|
 | 한 줄 주제로 설명 영상을 만들고 싶다 | [**설명 영상 만들기**](https://github.com/reedodev/explainer-studio) | `reedodev/explainer-studio` |
 | 대본 하나로 검수된 단편·광고를 만들고 싶다 | [**대본 하나로 만드는 단편**](https://github.com/reedodev/scenario-to-film) | `reedodev/scenario-to-film` |
+| 영상에 단어 단위 자막을 넣고 싶다 | [**다이나믹 자막**](https://github.com/reedodev/dynamic-captions) | `reedodev/dynamic-captions` |
 | 웹소설을 기획하고 쓰고 연재하고 싶다 | [**웹소설 스튜디오**](https://github.com/reedodev/webnovel-studio) | `reedodev/webnovel-studio` |
 | 옵시디언을 AI가 정리해 주는 지식 저장고로 만들고 싶다 | [**옵시디언 LLM 위키**](https://github.com/reedodev/obsidian-llm-wiki) | `reedodev/obsidian-llm-wiki` |
 | 내 노트를 3D 뇌와 세계수로 보고 싶다 | [**옵시디언 3D 지식그래프**](https://github.com/reedodev/obsidian-brain-3d) | `reedodev/obsidian-brain-3d` |
@@ -64,7 +65,7 @@
 
 ## English
 
-This repository is an index. Each of the fourteen Claude Code skills lives in its own repository with its own README, examples and CI. Install only the ones you need.
+This repository is an index. Each of the fifteen Claude Code skills lives in its own repository with its own README, examples and CI. Install only the ones you need.
 
 ### New here? A three-minute guide
 
@@ -94,6 +95,7 @@ Then ask the assistant in your own words. Each repository README has copy-and-pa
 |---|---|
 | Turn one line into an explainer video | [explainer-studio](https://github.com/reedodev/explainer-studio): One line in, a narrated or captioned explainer video out, in eight hand-drawn styles (whiteboard, blueprint, ink-wash, spy titles and more), with a gentle camera, sources file and MP4 plus SRT. |
 | Turn one script into a checked short film or ad | [scenario-to-film](https://github.com/reedodev/scenario-to-film): One script in, a checked short film or ad out: script doctor, shot list, previs gate, cost-approved generation plan, sound and QA, with three checkers. Nothing paid runs before you approve the cost. |
+| Add word-level captions to a video | [dynamic-captions](https://github.com/reedodev/dynamic-captions): Word-level captions in 10+ styles plus auto-mix, shown as one style sheet first. Captions move around the frame inside platform-safe areas, avoid faces, pulse on the beat and render in parallel to MP4 and a transparent overlay. |
 | Plan, write and serialize a web novel | [webnovel-studio](https://github.com/reedodev/webnovel-studio): Pick a new series from Korean, English and Japanese top-list evidence, then write, check and serialize it chapter by chapter, with an English translation serial. Three small checkers included. |
 | Turn an Obsidian vault into an AI-maintained knowledge base | [obsidian-llm-wiki](https://github.com/reedodev/obsidian-llm-wiki): Set up an Obsidian vault as a Karpathy-style LLM Wiki: inbox, sources, wiki, outputs, a rules file every AI reads first, templates and an index, plus scripts to rebuild the index and health-check links, front matter and recheck dates. |
 | See your notes as a 3D brain or world tree | [obsidian-brain-3d](https://github.com/reedodev/obsidian-brain-3d): Render an Obsidian vault as points inside an x-ray brain and skull, switch to a world-tree layout with T, and see real note titles, dates and link counts. Optional title/group hiding for public sharing. |
